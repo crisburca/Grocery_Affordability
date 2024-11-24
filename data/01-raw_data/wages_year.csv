@@ -1,0 +1,45 @@
+﻿"Employee wages by industry, annual 1 2"
+"Frequency: Annual"
+"Table: 14-10-0064-01 (formerly CANSIM 282-0072)"
+"Release date: 2024-01-05"
+"Geography: Canada, Province or territory"
+""
+""
+
+"Geography 3","Canada",,,,,,,,,,,,,,,,,,
+"Wages 4","Average hourly wage rate",,,,,,,,,,,,,,,,,,
+"Type of work","Both full- and part-time employees",,,,,,,,,,,,,,,,,,
+"North American Industry Classification System (NAICS) 5","Total employees, all industries 6","Goods-producing sector 7","Agriculture 8","Forestry, fishing, mining, quarrying, oil and gas 9 10","Utilities","Construction","Manufacturing","Services-producing sector 11","Wholesale and retail trade","Transportation and warehousing","Finance, insurance, real estate, rental and leasing","Professional, scientific and technical services","Business, building and other support services 12","Educational services","Health care and social assistance","Information, culture and recreation","Accommodation and food services","Other services (except public administration)","Public administration"
+"Sex","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes","Both sexes"
+"Age group","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over","15 years and over"
+"Reference period"
+,"Current dollars",,,,,,,,,,,,,,,,,,
+"2017","26.82","28.78","17.76","41.62","42.62","29.12","26.10","26.31","20.94","26.66","31.90","34.27","19.53","33.82","27.26","25.27","14.94","22.69","36.18"
+"2018","27.57","29.41","18.99","41.38","43.83","29.47","26.87","27.09","21.38","27.41","32.95","35.00","21.02","34.49","27.61","25.63","15.88","23.69","37.67"
+"2019","28.32","30.27","19.83","41.38","43.95","30.63","27.85","27.81","22.01","27.65","33.66","36.14","21.51","34.97","28.08","26.47","16.57","24.21","38.26"
+"2020","30.03","31.41","20.52","42.70","46.44","31.39","29.11","29.67","23.03","28.90","35.94","37.89","22.79","36.46","29.22","29.94","17.02","26.32","39.78"
+"2021","30.67","31.88","20.78","44.16","47.08","32.03","29.24","30.36","23.47","29.94","37.44","38.47","23.53","36.70","29.55","31.18","17.34","26.88","39.89"
+"2022","31.96","33.44","21.75","44.30","47.86","33.77","31.01","31.58","24.70","30.37","38.84","41.64","24.88","37.50","30.70","31.23","18.50","27.43","40.79"
+"2023","33.55","35.50","23.75","47.40","49.41","35.46","33.13","33.06","25.94","32.10","40.93","44.24","25.93","38.71","31.99","31.24","19.68","28.83","42.61"
+
+
+
+
+Footnotes:
+1,"To ensure respondent confidentiality, estimates below a certain threshold are suppressed. For Canada, Quebec, Ontario, Alberta and British Columbia suppression is applied to all data below 1,500. The threshold level for Newfoundland and Labrador, Nova Scotia, New Brunswick, Manitoba and Saskatchewan is 500, while in Prince Edward Island, estimates under 200 are supressed. For census metropolitan areas (CMAs) and economic regions (ERs), use their respective provincial suppression levels mentioned above. Estimates are based on smaller sample sizes the more detailed the table becomes, which could result in lower data quality."
+2,"Starting in 2006, enhancements to the Labour Force Survey data processing system may have introduced a level shift in some estimates, particularly for less common labour force characteristics. Use caution when comparing estimates before and after 2006. For more information, contact statcan.labour-travail.statcan@statcan.gc.ca"
+3,"Excluding the territories."
+4,"Beginning January 1997, information is collected on the usual wages or salary of employees at their main job. Respondents are asked to report their wage/salary before taxes and other deductions, and include tips, commissions and bonuses. Weekly and hourly wages/salaries are calculated in conjunction with usual paid work hours per week. Starting in 2006, enhancements to the Labour Force Survey processing system have introduced a level shift in average and median wages. Use caution when comparing estimates before and after 2006. For more information, contact statcan.labour-travail.statcan@statcan.gc.ca"
+5,"Industry refers to the general nature of the business carried out by the employer for whom the respondent works (main job only). In January 1999, the industry classification switched from Standard Industrial Classification (SIC 1980) to North American Industrial Classification System (NAICS), which was quite different. For this reason, detailed historical data based on NAICS is provided going back to January 1987. Historical data have been created by imputation. Industry estimates in this table are based on the 2017 North American Industry Classification System (NAICS)."
+6,"This combines the North American Industry Classification System (NAICS) codes 11 to 91."
+7,"This combines the North American Industry Classification System (NAICS) codes 11 to 33."
+8,"Labour Force Survey (LFS) North American Industry Classification System (NAICS) code exception: add group 1100 - Farming - not elsewhere classified (nec). When the type of farm activity cannot be distinguished between crop and livestock, (example: mixed farming)."
+9,"Labour Force Survey (LFS) North American Industry Classification System (NAICS) code exception: add group 2100 - Mining - not elsewhere classified (nec). Whenever the type of mining activity cannot be distinguished."
+10,"Also referred to as Natural resources."
+11,"This combines the North American Industry Classification System (NAICS) codes 41 to 91."
+12,"Formerly "Management of companies and administrative and other support services"."
+
+
+
+"How to cite: Statistics Canada. Table 14-10-0064-01  Employee wages by industry, annual"
+https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410006401
