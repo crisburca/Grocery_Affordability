@@ -16,181 +16,336 @@ toc: true
 bibliography: references.bib
 ---
 
-# Introduction
-
-Inflation in Cananda has increased rampantly in all sectors, growing concerns about affordability. Within this, the roles of inflation and stagnant wages have made groceries less attainable for Canadians. Grocery prices have risen 22.5% since May of 2020, and continue to rise each month 
-
-
-"How have grocery prices in Canada changed over time, and how do these changes, relative to inflation and wages, affect the accessibility of a healthy diet across socioeconomic classes?"
-
-"How do grocery store pricing strategies influence the affordability of healthy diets in Canada, and how have these strategies changed over time in relation to inflation and wages?"
-
-Focus on a subset of comparable products (e.g., fruits vs. snacks, vegetables vs. processed foods).
- Analyze how prices for healthy and unhealthy groceries have changed over time.
-
-
--eggs
--butter
--milk
-- chicken
-- rice 
-- potatoes
-- tomatoes
-- 
-
-# Data
-
 ```{r}
 #| include: false
 #| message: false
 #| warning: false
 
 library(tidyverse)
+library(knitr)
+library(rstanarm)
 
 grocery_data <- read.csv("../data/02-analysis_data/grocery_data.csv")
 inflation_data <- read.csv("../data/02-analysis_data/inflation_data.csv")
 avg_wage_data <- read.csv("../data/02-analysis_data/avg_wage_data.csv")
 inflation_wage_data <- read.csv("../data/02-analysis_data/inflation_wage_data.csv")
+old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage_data.csv")
+```
+
+# Introduction
+
+Inflation in Cananda has increased rampantly in all sectors, growing concerns about affordability. Within this, the roles of inflation and stagnant wages have made groceries less attainable for Canadians. Grocery prices have risen 22.5% since May of 2020, and continue to rise each month, creating panic for households (@CTVNews). In this paper, we explore the inflation rates of groceries in Canada from 2017 to 2023, relating it to wages. We then aim to predict the cost of groceries over the coming years, assessing if the increasing rate of wages is enough for groceries as an average Canadian. 
+
+
+"How have grocery prices in Canada changed over time, and how do these changes, relative to inflation and wages, affect the accessibility of groceries across socioeconomic classes?"
+
+
+
+Focus on a subset of comparable products (e.g., fruits vs. snacks, vegetables vs. processed foods).
+ Analyze how prices for healthy and unhealthy groceries have changed over time.
+
+
+Overview paragraph
+
+Estimand paragraph
+We want to predict grocery prices based on past grocery prices, inflation and wages? to determine if Canadians will be able to afford groceries in the coming years, assuming inflation and wages are increasing at a steady rate.
+
+Results paragraph
+
+Why it matters paragraph
+
+Telegraphing paragraph: The remainder of this paper is structured as follows. @sec-data....
+
+
+# Data Overiview
+
+## Citations
+The datasets used in this analysis are retrieved from Statistics Canada (@cite). The main dataset is acquired from [@grocery], containing grocery prices of set units for each month of the year. This dataset is recorded beginning January 2017, and thus analysis with this data set will only be from 2017. The second dataset (@cite) contains monthly records of Consumer Price Index (CPI), all-items excluding the effect of indirect taxes. CPI is used as an indicator of change for consumer prices, or in other words, rate of inflation. It is measuring the prices, and thus price difference, of a set number of common groceries and household goods at a set quantity(unit) representing the average Canadian household. The third dataset contains records of yearly wages of Canada.
+The three datasets were merged together for analysis. 
+
+## Variables
+The important variables that are focused on throughout this paper:
+
+- `Date`: Contains the date of the recording of the observations, formatted as YYYY-MM-DD. Days are set to 01, since daily data is not recorded.
+- `CPI`: Contains monthly values of recorded CPI.
+- `CPI_Percentage`: A column created to capture the CPI increase as a percentage. The CPI recorded on January 2017 was 129, and is set to 0 in this variable. Continuous data is based off of January 2000.
+- `Wage`: Yearly average wage of all employees from all industries. 
+- `CPI_Normalized` and `Wage_Normalized`: calculated columns to measure.
+- `Average_price`: calculates the average prices of a "basket" summing all products in the data and dividing by the number of groceries.
+- `Affordability` : A variable created as an Affordability Index, calculated by Average price divided by Wage. 
+
+ The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher vales of the index indicate better affordibilty, while lower values suggest affordibility struggles.
+ 
+More about data cleaning in the appendix section appendix @data cleaning.
+
+
+The first variables examined are `CPI` and `Wage`. In Figure 1, we analyse normalized values of yearly average wages and monthly CPI from 2000 to 2023, as they are measured on different scales. This graph illustrates the trend between CPI and wages. The period of 2000 to 2020 shows a predominantly economically steady correlation between the two variables, with predictable inflation rates. However, the Covid-19 pandemic began in 2020, causing restricted movement globally, subsequently disruption global economies and changing consumer spending behaviour, shown by the sharp growth after 2020. This resulted in a decline in demand of goods and services, which is reflected in the CPI. By 2022, CPI rapidly inflates due to increase consumer demand as economies reopened, but wages remain on a somewhat steady increase. 
+
+CPI doesn't particularly affect wage increases. 
+
+
+May 2022/2023 
+- which correlations to focus on?
+
+```{r, fig.width= 7.5, fig.height= 3}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-cpiwage
+#| fig-cap: "Normalized CPI and Wages Over Time from 2000 to 2023"
+
+# Normalize data
+old_inflation_wage_data <- old_inflation_wage_data %>%
+  mutate(CPI_normalized = (CPI - min(CPI)) / (max(CPI) - min(CPI)),
+         Wage_normalized = (Wage - min(Wage)) / (max(Wage) - min(Wage)))
+
+# Reshape
+normalized_data <- old_inflation_wage_data %>%
+ pivot_longer(cols = c(CPI_normalized, Wage_normalized),
+             names_to = "Variable",
+              values_to = "Value")
+
+ggplot(normalized_data, aes(x = as.Date(Date))) +
+  geom_line(aes(y = Value, color = Variable)) +
+  labs( x = "Date",
+      y = "Normalized Value",
+      color = "Variables") +
+  scale_x_date(
+    date_breaks = "3 years",
+    date_labels = "%Y") +
+ theme_minimal() +
+  scale_color_manual(
+    values = c("hotpink1", "lightseagreen"),
+    labels = c("CPI", "Wage"))
+
 ```
 
 
-```{r}
+
+```{r, fig.width= 5.5, fig.height= 3}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-cpiwage2017
+#| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
 
 
+year_data <- normalized_data %>%
+  filter(Year >= 2017)
+
+ggplot(year_data, aes(x = as.Date(Date))) +
+  geom_line(aes(y = Value, color = Variable)) +
+  labs( x = "Date",
+      y = "Normalized Value",
+      color = "Variables") +
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y") +
+ theme_minimal() +
+  scale_color_manual(
+    values = c("hotpink1", "lightseagreen"),
+    labels = c("CPI", "Wage"))
 ```
 
+in @fig-cpiwage2017 between 2020-2022, covid. CPI went down because people were buying things, and wages went up surprisingly, since many people lost their jobs during covid, suggesting that companies were saving more money, people were getting paid more perhaps through bonuses and government covid funding. It is clear that the two variables are correlated, but may not necessarily depend on each other. 
 
+
+In @fig-affordability we analyze the Affordability Index created. Graphed over the years beginning in 2017, we notice that ...
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-affordability
+#| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
+
 grocery_data <- grocery_data %>%
-  mutate(Date = as.Date(paste(year, month, "01", sep = "-"))) # Assuming "01" for the day
-grocery_data
-# Plot the data ordered by Date
-ggplot(grocery_data, aes(x = Date, y = Toothpaste._100_millilitres_5)) +
-  geom_line(color = "blue", size = 1) +  # Add a line plot
-  labs(
-    title = "Toothpaste",
-    x = "Date",
-    y = "Price (per kilogram)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  mutate(Average_Price = rowSums(select(., -Date, -CPI, -Wage, -Month, -Year, -CPI_Percentage, -Products), na.rm = TRUE) / 111)
 
-```
-
-
-```{r}
-ggplot(avg_wage_data, aes(x = year, y = Wage)) +
-  geom_line(color = "blue", size = 1) +  # Line plot
-  geom_point(color = "red", size = 2) +  # Points on the line
-  labs(
-    title = "Year vs Wage",
-    x = "Year",
-    y = "Wage (in Dollars)"
-  ) +
-  theme_minimal()  # Use a clean theme
-
-```
-
-```{r}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-
-# Step 1: Normalize the variables for comparison
-grocery_data <- grocery_data %>%
+# Step 1: Prepare the data
+model_data <- grocery_data %>%
   mutate(
-    Stewing_Cuts_Normalized = (Toothpaste._100_millilitres_5 - min(Toothpaste._100_millilitres_5)) /
-                              (max(Toothpaste._100_millilitres_5) - min(Toothpaste._100_millilitres_5)),
-    CPI_Normalized = (CPI - min(CPI)) / (max(CPI) - min(CPI))
-  )
+    Date = as.Date(Date, format = "%Y-%m-%d"),
+    Time = as.numeric(Date - min(Date)),
+    Affordability = Wage/Average_Price,
+    CPI = as.numeric(CPI),
+    Wage = as.numeric(Wage)
+  ) %>%
+  filter(Year >= 2017)
 
-# Step 2: Reshape the data to long format
-grocery_data_long <- grocery_data %>%
-  pivot_longer(
-    cols = c(Stewing_Cuts_Normalized, CPI_Normalized), # Add variables to compare
-    names_to = "Variable",
-    values_to = "Value"
-  )
-
-# Step 3: Plot both variables on the same y-axis
-ggplot(grocery_data_long, aes(x = Date, y = Value, color = Variable, group = Variable)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  labs(
-    title = "Comparison of Beef Stewing Cuts Price and CPI Over Time",
-    x = "Date",
-    y = "Normalized Value (0 to 1)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+ggplot() +
+  geom_line(data = model_data, aes(x = Date, y = Affordability)) +
+  labs(title = "Observed Affordability", y = "Affordability Index", x = "Date") +
+  theme_minimal()
 ```
+
+# Model 
+
+## Model Justification
 
 ```{r}
-# Step 1: Normalize the variables for comparison
-grocery_data <- grocery_data %>%
+#| include: false
+#| message: false
+#| warning: false
+
+
+# Step 2: Define the model
+model <- Affordability ~ CPI + Time
+
+# Step 3: Fit the Bayesian model
+priors <- normal(0, 2.5, autoscale = TRUE)
+
+bay_model <- stan_glm(
+  formula = model,
+  data = model_data,
+  family = gaussian(),
+  prior = priors,
+  prior_intercept = priors,
+  seed = 123)
+
+#add summary
+
+
+# Step 4: Generate predictions
+predictions <- predict(bay_model, newdata = model_data)
+
+# Add predictions to the data
+model_data <- model_data %>%
+  mutate(Predicted_Affordability = predictions)
+```
+
+
+## Discussion
+
+- Model follows observed Affordability Index, caputring long-term trend
+- The Bayesian prediction smooths out short-term fluctuations (e.g., the volatility in observed values during 2018 and 2019). This indicates that while real-world affordability may be influenced by sudden events (e.g., market shocks), the underlying trend is governed by systematic factors such as inflation and wage growth, which the model captures.
+  - The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
+- The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
+
+```{r, fig.width= 6, fig.height=3.5}
+#| echo: false
+#| message: false
+#| warning: false
+
+fitted_values <- posterior_predict(bay_model, newdata = model_data)
+
+# Step 4: Compute credible intervals and mean predictions
+model_data <- model_data %>%
   mutate(
-    Stewing_Cuts_Normalized = (Toothpaste._100_millilitres_5 - min(Toothpaste._100_millilitres_5)) /
-                              (max(Toothpaste._100_millilitres_5) - min(Toothpaste._100_millilitres_5)),
-    CPI_Normalized = (CPI - min(CPI)) / (max(CPI) - min(CPI))
+    Predicted_Affordability = apply(fitted_values, 2, mean),      # Posterior mean
+    CI_Lower = apply(fitted_values, 2, quantile, probs = 0.05), # 2.5th percentile
+    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.95)  # 97.5th percentile
   )
 
-# Step 2: Reshape the data to long format
-grocery_data_long <- grocery_data %>%
-  pivot_longer(
-    cols = c(Stewing_Cuts_Normalized, CPI_Normalized), # Add variables to compare
-    names_to = "Variable",
-    values_to = "Value"
-  )
-
-# Step 3: Plot both variables on the same y-axis
-ggplot(grocery_data_long, aes(x = Date, y = Value, color = Variable, group = Variable)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
+# Step 5: Visualize actual vs predicted affordability
+ggplot(model_data, aes(x = Date)) +
+  geom_line(aes(y = Affordability, color = "Actual"), size = 1) +
+  geom_line(aes(y = Predicted_Affordability, color = "Bayesian Prediction"), size = 1, linetype = "dashed") +
+  geom_ribbon(aes(ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), alpha = 0.2) +
   labs(
-    title = "Comparison of Beef Stewing Cuts Price and CPI Over Time",
+    title = "Actual vs Predicted Affordability with Credible Intervals",
     x = "Date",
-    y = "Normalized Value (0 to 1)"
+    y = "Affordability Index",
+    color = "Legend",
+    fill = "Confidence Interval"
   ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+  scale_color_manual(values = c("Actual" = "blue", "Bayesian Prediction" = "red")) +
+  scale_fill_manual(values = c("Bayesian CI" = "pink")) +
+  theme_minimal()# Actual vs Predicted Milk Prices (Linear and Bayesian)
+ggplot(model_data, aes(x = Date)) +
+  geom_line(aes(y = Affordability, color = "Actual")) +
+  geom_line(aes(y = Predicted_Affordability, color = "Bayesian Prediction")) +
+  geom_ribbon(aes(ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), alpha = 0.2) +
+  labs(
+    title = "Observed vs Predicted Affordability",
+    x = "Date",
+    y = "Affordability Index",
+    color = "Legend",
+    fill = "Confidence Interval"
+  ) +
+  scale_color_manual(values = c("Actual" = "blue", "Linear Prediction" = "black", "Bayesian Prediction" = "red")) +
+  theme_minimal()
 
 ```
 
+## Projected Affordibility Index
 
 ```{r}
-library(dplyr)
-library(ggplot2)
+#| echo: false
+#| message: false
+#| warning: false
 
-# Assuming `CPI_Percentage` is the inflation rate in percentage (e.g., 0.02 for 2%)
-# Step 1: Create the inflation-adjusted price column
-grocery_data <- grocery_data %>%
-  mutate(
-    Inflation_Rate = (CPI - lag(CPI, default = first(CPI))) / lag(CPI, default = first(CPI)), # Calculate monthly inflation
-    Inflation_Rate = replace_na(Inflation_Rate, 0), # Handle any NA values
-    Adjusted_Beef_Price = Toothpaste._100_millilitres_5 *
-                          cumprod(1 + Inflation_Rate) # Cumulatively apply inflation
-  )
+future_data <- data.frame(
+  Date = seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month"),
+  Time = as.numeric(seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month") - min(model_data$Date)),
+  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60) # Example CPI projection
+)
 
-# Step 2: Plot both the original and adjusted prices
-ggplot(grocery_data, aes(x = Date)) +
-  geom_line(aes(y = Toothpaste._100_millilitres_5, color = "Original Beef Price"), size = 1) +
-  geom_line(aes(y = Adjusted_Beef_Price, color = "Inflation-Adjusted Price"), size = 1, linetype = "dashed") +
-  labs(
-    title = "Beef Stewing Cuts Price vs Inflation-Adjusted Price",
-    x = "Date",
-    y = "Price (per kilogram)",
-    color = "Legend"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+future_data$Predicted_Affordability <- predict(bay_model, newdata = future_data)
 
+ggplot() +
+  geom_line(data = model_data, aes(x = Date, y = Affordability, color = "Observed")) +
+  geom_line(data = future_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted")) +
+  labs(title = "Observed and Predicted Affordability", y = "Affordability Index", x = "Date") +
+  scale_color_manual(values = c("Observed" = "blue", "Predicted" = "red")) +
+  theme_minimal()
 
 ```
+
+
+
+
+
 
 
 # Discussion
 
 ## Limitations
-- 
+- limited produce 
+- limited data available (only from 2017)
+  - more recent data, 2024 has high spikes in groceries 
+
+## Next Steps
+
+- Perhaps a better question would be how does affordability compare to all sectors, not just grocery prices ?
+
+\newpage
+
+# Appendix 
+
+## Data Cleaning
+This section will be explaining the data cleaning process documented in `/scripts/03-clean_data`. 
+
+I used a 3 different datasets, split between 5 files. `old_inflation_data` and `inflation_data` are from the same source, but `old_inflation_data` contains years 2000 to 2023. The same was done for `old_wage_data`. This decision was done to make a broader analysis over many years easier, since data for `grocery_data` is only available from 2017 and on- variables `avg_wage_data` and `inflation_data` only contain data from 2017 and on as well.
+Similar cleaning processes were used for each variable. The data is loaded in and the first couple of rows are skipped since they contains subheadings?.  One of the rows is kept for the column names using `colnames`, which then are renamed. `gsub` is used to rename the column names to remove spaces and characters that would conflict with the code. `mutate was used to extract year and month columns for `grocery_data` and `inflation_data`,and `old_inflation_data`, since these variables are recorded monthly. `left_join` Is used to merge `inflation_data` to `grocery_data` by variables `year` and `month`.
+
+
+`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and ‘old_inflation_wage_data’, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data’.
+
+
+
+## Methodological Exploration of CPI Data Collection
+
+
+
+
+
+## Postrior Predictive Check 
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+pp_check(bay_model)
+summary(bay_model)
+plot(bay_model, pars = "(Intercept)", prob = 0.95)
+```
+
+
+\newpage
+
+
+
+
+
+

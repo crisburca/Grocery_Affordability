@@ -14,9 +14,9 @@ library(tidyverse)
 
 grocery_data <- read.csv("./data/01-raw_data/grocery_prices.csv", skip = 7, header = TRUE)
 inflation_data <- read.csv("./data/01-raw_data/cpi_inflation.csv",  skip = 7, header = TRUE)
-avg_wage_data <- read.csv("./data/01-raw_data/wages_year.csv", skip= 16, header = FALSE)
-
-
+avg_wage_data <- read.csv("./data/01-raw_data/wages_Year.csv", skip= 16, header = FALSE)
+old_wage_data <- read.csv("./data/01-raw_data/old_wages_Year.csv", skip= 16, header = FALSE)
+old_inflation_data <- read.csv("./data/01-raw_data/old_cpi_inflation.csv", skip= 7, header = TRUE)
 
 
 # Remove unnecessary rows and format grocery data
@@ -48,49 +48,129 @@ avg_wage_data$Wage <- as.numeric(avg_wage_data$Wage)
 
 
 
+# Same for old avg wage data
+old_wage_data <- old_wage_data[1:24, ]
+old_wage_data <- old_wage_data[, 1:2]
+colnames(old_wage_data) <- c("Year", "Wage")
+
+old_wage_data$Year <- as.numeric(old_wage_data$Year)
+old_wage_data$Wage <- as.numeric(old_wage_data$Wage)
+
+
+# Same for old inflation data
+colnames(old_inflation_data) <- old_inflation_data[1, ] 
+old_inflation_data <- old_inflation_data[-c(1,3), ]   
+old_inflation_data <- old_inflation_data[-1, ]
+old_inflation_data <- head(old_inflation_data, -5)
+colnames(old_inflation_data) <- c("Date", "CPI")
+
+old_inflation_data <- old_inflation_data %>%
+  mutate(Year = year(dmy(paste("01", Date))),
+         Month = month(dmy(paste("01", Date)))) 
+
+
 
 # Extract month
 grocery_data <- grocery_data %>%
-  mutate(year = year(dmy(paste("01", Products))), 
-         month = month(dmy(paste("01", Products))))
+  mutate(Year = year(dmy(paste("01", Products))), 
+         Month = month(dmy(paste("01", Products))))
 
-# Extract month and year
+# Extract month and Year
 inflation_data <- inflation_data %>%
-  mutate(year = year(dmy(paste("01", Date))),
-         month = month(dmy(paste("01", Date)))) 
+  mutate(Year = year(dmy(paste("01", Date))),
+         Month = month(dmy(paste("01", Date)))) 
 
-# Merge CPI data with grocery data by year and month
+# Merge CPI data with grocery data by Year and month
 merged_data <- grocery_data %>%
-  left_join(inflation_data, by = c("year", "month"))
+  left_join(inflation_data, by = c("Year", "Month"))
 
-# Merge wage data by year
+# Merge wage data by Year
 avg_wage_data <- avg_wage_data %>%
-  rename(year = Date) # Rename to match `grocery_data`
+  rename(Year = Date) 
 
 final_data <- merged_data %>%
-  left_join(avg_wage_data, by = "year")
+  left_join(avg_wage_data, by = "Year")
 
-# Create CPI percentage column
+final_data <- final_data %>%
+  mutate(CPI = as.numeric(CPI))
+
+# Extract reference CPI
+ref_cpi <- final_data %>%
+  filter(Date == "January 2017") %>%
+  pull(CPI)
+
+# Add CPI percentage column
 final_data <- final_data %>%
   mutate(
-    CPI_Percentage = (CPI - CPI[Date == "January 2017"]) / CPI[Date == "January 2017"] * 100
-  )
+    CPI_Percentage = (CPI - ref_cpi) / ref_cpi * 100)
+
+# Create Date column for plotting
+final_data <- final_data %>%
+  mutate(Date = as.Date(paste(Year, Month, "01", sep = "-")))
+
 
 # Merging inflation and wage in separate variable
 inflation_wage_data <- inflation_data %>%
   mutate(Wage = case_when(
-    year == 2017 ~ 26.82,
-    year == 2018 ~ 27.57,
-    year == 2019 ~ 28.32,
-    year == 2020 ~ 30.03,
-    year == 2021 ~ 30.67,
-    year == 2022 ~ 31.96,
-    year == 2023 ~ 33.55
-  ))
+    Year == 2017 ~ 26.82,
+    Year == 2018 ~ 27.57,
+    Year == 2019 ~ 28.32,
+    Year == 2020 ~ 30.03,
+    Year == 2021 ~ 30.67,
+    Year == 2022 ~ 31.96,
+    Year == 2023 ~ 33.55))
 
+# Merging old inflation and wage in separate variable
+old_inflation_wage_data <- old_inflation_data %>%
+  mutate(Wage = case_when(
+    Year == 2000 ~ 16.66,
+    Year == 2001 ~ 17.22,
+    Year == 2002 ~ 17.66,
+    Year == 2003 ~ 18.05,
+    Year == 2004 ~ 18.5,
+    Year == 2005 ~ 19.09,
+    Year == 2006 ~ 20.16,
+    Year == 2007 ~ 20.99,
+    Year == 2008 ~ 21.85,
+    Year == 2009 ~ 22.63,
+    Year == 2010 ~ 23.09,
+    Year == 2011 ~ 23.6,
+    Year == 2012 ~ 24.23,
+    Year == 2013 ~ 24.75,
+    Year == 2014 ~ 25.18,
+    Year == 2015 ~ 25.88,
+    Year == 2016 ~ 26.41,
+    Year == 2017 ~ 26.82,
+    Year == 2018 ~ 27.57,
+    Year == 2019 ~ 28.32,
+    Year == 2020 ~ 30.03,
+    Year == 2021 ~ 30.67,
+    Year == 2022 ~ 31.96,
+    Year == 2023 ~ 33.55))
+
+old_inflation_wage_data <- old_inflation_wage_data %>%
+  mutate(Date = as.Date(paste(Year, Month, "01", sep = "-")))
+
+merged_data <- merge(old_wage_data, old_inflation_data, by = "Year", all = TRUE)
+
+old_inflation_wage_data <- old_inflation_wage_data %>%
+  mutate(CPI = as.numeric(CPI)) %>%
+  mutate(CPI_Percentage = (CPI - lag(CPI)) / lag(CPI) * 100)
+
+wage_changes <- old_inflation_wage_data %>%
+  group_by(Year) %>% # Group by Year to focus on unique yearly Wage values
+  summarise(Wage = first(Wage), .groups = "drop") %>% # Take the first Wage value for each year
+  mutate(Wage_Percentage = (Wage - lag(Wage)) / lag(Wage) * 100) 
+
+old_inflation_wage_data <- old_inflation_wage_data %>%
+  mutate(Year = year(as.Date(Date))) %>% # Ensure Year column exists
+  left_join(wage_changes %>% select(Year, Wage_Percentage), by = "Year")
+
+old_inflation_wage_data
 
 #### Save data ####
 write_csv(final_data, "./data/02-analysis_data/grocery_data.csv")
 write_csv(inflation_data, "./data/02-analysis_data/inflation_data.csv")
 write_csv(avg_wage_data, "./data/02-analysis_data/avg_wage_data.csv")
 write_csv(inflation_wage_data, "./data/02-analysis_data/inflation_wage_data.csv")
+write_csv(old_inflation_wage_data, "./data/02-analysis_data/old_inflation_wage_data.csv")
