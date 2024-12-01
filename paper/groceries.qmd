@@ -24,6 +24,7 @@ bibliography: references.bib
 library(tidyverse)
 library(knitr)
 library(rstanarm)
+library(modelsummary)
 
 grocery_data <- read.csv("../data/02-analysis_data/grocery_data.csv")
 inflation_data <- read.csv("../data/02-analysis_data/inflation_data.csv")
@@ -67,27 +68,24 @@ The three datasets were merged together for analysis.
 The important variables that are focused on throughout this paper:
 
 - `Date`: Contains the date of the recording of the observations, formatted as YYYY-MM-DD. Days are set to 01, since daily data is not recorded.
-- `CPI`: Contains monthly values of recorded CPI.
-- `CPI_Percentage`: A column created to capture the CPI increase as a percentage. The CPI recorded on January 2017 was 129, and is set to 0 in this variable. Continuous data is based off of January 2000.
+- `CPI`: Contains monthly values of recorded CPI. CPI is a unitless measure, where the average price level in the abse year is set to 100.
 - `Wage`: Yearly average wage of all employees from all industries. 
 - `CPI_Normalized` and `Wage_Normalized`: calculated columns to measure.
-- `Average_price`: calculates the average prices of a "basket" summing all products in the data and dividing by the number of groceries.
+- `Average_price`: calculates the average price based off selected items that make up a Canadians' "essential grocery basket".
 - `Affordability` : A variable created as an Affordability Index, calculated by Average price divided by Wage. 
 
- The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher vales of the index indicate better affordibilty, while lower values suggest affordibility struggles.
+ The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher vales of the index indicate better affordability, while lower values suggest affordability struggles.
+ 
+ Items included in Average_Price include...
+ The total average is a very rough estimate of popular items purchased by Canadians. The average is not particularly inportant, but the impact and correlation between the two variables is. 
  
 More about data cleaning in the appendix section appendix @data cleaning.
 
+# Data Analysis
 
-The first variables examined are `CPI` and `Wage`. In Figure 1, we analyse normalized values of yearly average wages and monthly CPI from 2000 to 2023, as they are measured on different scales. This graph illustrates the trend between CPI and wages. The period of 2000 to 2020 shows a predominantly economically steady correlation between the two variables, with predictable inflation rates. However, the Covid-19 pandemic began in 2020, causing restricted movement globally, subsequently disruption global economies and changing consumer spending behaviour, shown by the sharp growth after 2020. This resulted in a decline in demand of goods and services, which is reflected in the CPI. By 2022, CPI rapidly inflates due to increase consumer demand as economies reopened, but wages remain on a somewhat steady increase. 
+The first variables examined are `CPI` and `Wage`. In @fig-cpiwage, we analyse normalized values of yearly average wages and monthly CPI from 2000 to 2023, as they are measured on different scales. This graph illustrates the trend between CPI and wages. The period of 2000 to 2020 shows a predominantly economically steady correlation between the two variables, with predictable inflation rates. However, the Covid-19 pandemic began in 2020, causing restricted movement globally, subsequently disruption global economies and changing consumer spending behaviour, shown by the sharp growth after 2020. This resulted in a decline in demand of goods and services, which is reflected in the CPI. By 2022, CPI rapidly inflates due to increase consumer demand as economies reopened, but wages remain on a somewhat steady increase. 
 
-CPI doesn't particularly affect wage increases. 
-
-
-May 2022/2023 
-- which correlations to focus on?
-
-```{r, fig.width= 7.5, fig.height= 3}
+```{r, fig.width= 6.5, fig.height= 3}
 #| echo: false
 #| message: false
 #| warning: false
@@ -116,13 +114,14 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
  theme_minimal() +
   scale_color_manual(
     values = c("hotpink1", "lightseagreen"),
-    labels = c("CPI", "Wage"))
+    labels = c("CPI", "Wage")) + 
+  theme(legend.position = "bottom")
 
 ```
 
+in @fig-cpiwage2017 between 2020-2022, covid. CPI went down because people were buying things, and wages went up surprisingly, since many people lost their jobs during covid, suggesting that companies were saving more money, people were getting paid more perhaps through bonuses and government covid funding. It is clear that the two variables are correlated, but may not necessarily depend on each other. 
 
-
-```{r, fig.width= 5.5, fig.height= 3}
+```{r, fig.width= 5.5, fig.height= 2.8}
 #| echo: false
 #| message: false
 #| warning: false
@@ -144,49 +143,156 @@ ggplot(year_data, aes(x = as.Date(Date))) +
  theme_minimal() +
   scale_color_manual(
     values = c("hotpink1", "lightseagreen"),
-    labels = c("CPI", "Wage"))
+    labels = c("CPI", "Wage")) + 
+  theme(legend.position = "bottom")
 ```
 
-in @fig-cpiwage2017 between 2020-2022, covid. CPI went down because people were buying things, and wages went up surprisingly, since many people lost their jobs during covid, suggesting that companies were saving more money, people were getting paid more perhaps through bonuses and government covid funding. It is clear that the two variables are correlated, but may not necessarily depend on each other. 
+Introducing `Average_Price`, @fig-avgprice depicts the trend of average grocery prices from 2017 onwards. It is obvious that grocery prices increase as inflation increases, but it is confounding how much inflation has risen in the past 7 years. A grocery cart that costed \$120 in 2017 can cost well above \$160 in 2023 -- that is a 22% inflation. This number brings concern about the affordability of groceries in Canada, in addition to other inflating expenses, such as rent and utilities. 
 
-
-In @fig-affordability we analyze the Affordability Index created. Graphed over the years beginning in 2017, we notice that ...
-```{r}
+```{r, fig.width= 6, fig.height= 3}
 #| echo: false
 #| message: false
 #| warning: false
-#| label: fig-affordability
+#| label: fig-avgprice
 #| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
 
 grocery_data <- grocery_data %>%
-  mutate(Average_Price = rowSums(select(., -Date, -CPI, -Wage, -Month, -Year, -CPI_Percentage, -Products), na.rm = TRUE) / 111)
+  mutate(Date = as.Date(Date, format = "%Y-%m-%d"),
+    Average_Price = rowSums(select(., 
+      ground_beef_per_kilogram_4, chicken_breasts_per_kilogram_4,
+      butter_454_grams_4, milk_1_litre_4, yogurt_500_grams_5,
+      block_cheese_500_grams_5, eggs_1_dozen_4, apples_per_kilogram_4,
+      oranges_per_kilogram_4, bananas_per_kilogram_4, potatoes_4_54_kilograms_4,
+      tomatoes_per_kilogram_4, carrots_1_36_kilograms_5, onions_per_kilogram_4,
+      celery_unit_4, romaine_lettuce_unit_4, peppers_per_kilogram_4,
+      frozen_mixed_vegetables_750_grams_5, frozen_pizza_390_grams_5,
+      white_bread_675_grams_5, dry_or_fresh_pasta_500_grams_5,
+      white_rice_2_kilograms_5, orange_juice_2_litres_5,
+      roasted_or_ground_coffee_340_grams_5, olive_oil_1_litre_5,
+      toothpaste_100_millilitres_5, laundry_detergent_4_43_litres_5), na.rm = TRUE))
+
+ggplot(grocery_data, aes(x = Date, y = Average_Price)) +
+  geom_line(size = 0.5) +
+  labs(
+    title = "Price of Average Groceries Over Time",
+    x = "Date",
+    y = "Price",
+    color = "Category") + 
+  scale_y_continuous(limits=c(115,175),
+    breaks = seq(80, 180, by = 10)) +
+     scale_x_date(
+    date_breaks = "12 months",       
+    date_labels = "%b %Y"
+  ) +
+  theme_minimal()
+```
+
+To investigate this concern, we analyze the Affordability Index created in @fig-affordability. Graphed over the years beginning in 2017, we notice that the general trend of affordability is decreasing, implying affordability challenges. 
+
+even with increasing wages as CPI increases, there suggests that wage increasing is not enough to sustain the CPI increase.
+```{r, fig.width= 7, fig.height= 3}
+#| echo: false
+#| message: false
+#| warning: false
 
 # Step 1: Prepare the data
-model_data <- grocery_data %>%
+grocery_data <- grocery_data %>%
   mutate(
-    Date = as.Date(Date, format = "%Y-%m-%d"),
     Time = as.numeric(Date - min(Date)),
     Affordability = Wage/Average_Price,
     CPI = as.numeric(CPI),
-    Wage = as.numeric(Wage)
-  ) %>%
-  filter(Year >= 2017)
+    Wage = as.numeric(Wage))
+
+model_data <- grocery_data
 
 ggplot() +
   geom_line(data = model_data, aes(x = Date, y = Affordability)) +
   labs(title = "Observed Affordability", y = "Affordability Index", x = "Date") +
+   scale_x_date(
+    date_breaks = "12 months",       
+    date_labels = "%b %Y"
+  ) +
   theme_minimal()
+
+
 ```
+We further explore this correlation through a model....
 
 # Model 
 
+Introduce model. We run it using @rstanarm...
+
+## Model Setup 
+
+```{=tex}
+\begin{align} 
+\mbox{log}(y_i)|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
+\mu_i &= \beta_0 + \beta_1 \times \mbox{log(CPI)}_i + \beta_2 \times \mbox{log(Time)}_i\\
+\beta_0 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_1 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_2 &\sim \mbox{Normal}(0, 2.5) \\
+\sigma &\sim \mbox{Exponential}(1)
+\end{align}
+```
+
+The outcome variable of this model is a prediction of the affordability index, represented as $y_i$. The outcome is modeled as a function of CPI and Time. We choose not to use `Average_Price` as a predictor because it would cause redundancy, as affordability is defined in terms of wage and average price. This would cause multicollinearity issues, and produce almost exact results. Instead, we focus on the elastic 
+
+- $y_i$ is the dependent variable, representing the Affordability Index,
+- $\beta_0$ is the intercept value, when all predictors are set to zero,
+- $\beta_1$ is a numerical variable, represent the elasticity
+- $\beta_2$ is a numerical variable of Date turned into a cumulative column of days for each month of the year. Captures the change in the mean response $\mu_i$ over time.
+
+Each coefficient $\beta$ is assigned a Normal prior distribution, centered at zero, with a standard deviation of 2.5 to prevent overfitting. Exponential prior ensures that variance $\sigma > 0$. 
+
 ## Model Justification
+
+what do we expect the results to be...
+
+## Model Results 
 
 ```{r}
 #| include: false
 #| message: false
 #| warning: false
+elasticity_model <- lm(log(Affordability) ~ log(CPI) + log(Wage), data = model_data)
+```
 
+```{r, out.width= '100%'}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-summary
+#| tbl-cap: "Summary statistics of model"
+
+modelsummary(list(
+    "Elasticity Model" = elasticity_model),
+  output = "latex",
+  stars = TRUE,
+    gof_omit = "(AIC|BIC|Log.Lik|R2 Adj.)")
+
+```
+
+Interpreting @tbl-summary, this table summarized the result of the elasticity model, which quantifies how changes in one variables affect changes in another through logarithmic transformations. Log transformations linearize relationships between variables, and we use a log-log model to directly represent elasticizes-- defined as a 1% percent change in the dependent for a 1% change in the independent variable. 
+In this equation, $\beta_1$ represents elasticity of Affordability with respect to CPI, and $\beta_2$ represents the elasticity of Affordability with respect to Wage. 
+The summary statistics are understood to be as followed:
+
+- $\beta_0$ is the intercept value of 1.202, which is when both log(CPI) and log(Wage) are set to 0,
+- $\beta_1$ is log(CPI) with a coefficient of -0.885, meaning a 1% increase in CPI leads to a 0.885% decrease in affordability, when Wages are constant,
+- $\beta_2$ is log(Wage) with coefficient 0.484, meaning a 1% increase in wages leads to a 0.484% increase in affordability, when CPI is constant. 
+
+Thus, wage growth positively affects affordability but does not fully offset inflation's negative impact.
+
+Model fit metrics will be discussed in @apendix. 
+
+
+## very vague Preditived Model
+
+- hard to forecast short or long term events that affect CPI, such a strikes, government bills, diseas/sickness, etc, thus accurate model is very ahrd to predict. However, it is informative to have a general sense of where affordability will be in coming years.
+
+```{r}
+#| include: false
+#| message: false
+#| warning: false
 
 # Step 2: Define the model
 model <- Affordability ~ CPI + Time
@@ -204,72 +310,13 @@ bay_model <- stan_glm(
 
 #add summary
 
-
-# Step 4: Generate predictions
 predictions <- predict(bay_model, newdata = model_data)
 
-# Add predictions to the data
 model_data <- model_data %>%
   mutate(Predicted_Affordability = predictions)
 ```
 
-
-## Discussion
-
-- Model follows observed Affordability Index, caputring long-term trend
-- The Bayesian prediction smooths out short-term fluctuations (e.g., the volatility in observed values during 2018 and 2019). This indicates that while real-world affordability may be influenced by sudden events (e.g., market shocks), the underlying trend is governed by systematic factors such as inflation and wage growth, which the model captures.
-  - The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
-- The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
-
-```{r, fig.width= 6, fig.height=3.5}
-#| echo: false
-#| message: false
-#| warning: false
-
-fitted_values <- posterior_predict(bay_model, newdata = model_data)
-
-# Step 4: Compute credible intervals and mean predictions
-model_data <- model_data %>%
-  mutate(
-    Predicted_Affordability = apply(fitted_values, 2, mean),      # Posterior mean
-    CI_Lower = apply(fitted_values, 2, quantile, probs = 0.05), # 2.5th percentile
-    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.95)  # 97.5th percentile
-  )
-
-# Step 5: Visualize actual vs predicted affordability
-ggplot(model_data, aes(x = Date)) +
-  geom_line(aes(y = Affordability, color = "Actual"), size = 1) +
-  geom_line(aes(y = Predicted_Affordability, color = "Bayesian Prediction"), size = 1, linetype = "dashed") +
-  geom_ribbon(aes(ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), alpha = 0.2) +
-  labs(
-    title = "Actual vs Predicted Affordability with Credible Intervals",
-    x = "Date",
-    y = "Affordability Index",
-    color = "Legend",
-    fill = "Confidence Interval"
-  ) +
-  scale_color_manual(values = c("Actual" = "blue", "Bayesian Prediction" = "red")) +
-  scale_fill_manual(values = c("Bayesian CI" = "pink")) +
-  theme_minimal()# Actual vs Predicted Milk Prices (Linear and Bayesian)
-ggplot(model_data, aes(x = Date)) +
-  geom_line(aes(y = Affordability, color = "Actual")) +
-  geom_line(aes(y = Predicted_Affordability, color = "Bayesian Prediction")) +
-  geom_ribbon(aes(ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), alpha = 0.2) +
-  labs(
-    title = "Observed vs Predicted Affordability",
-    x = "Date",
-    y = "Affordability Index",
-    color = "Legend",
-    fill = "Confidence Interval"
-  ) +
-  scale_color_manual(values = c("Actual" = "blue", "Linear Prediction" = "black", "Bayesian Prediction" = "red")) +
-  theme_minimal()
-
-```
-
-## Projected Affordibility Index
-
-```{r}
+```{r, fig.width= 7.5, fig.height=3.5}
 #| echo: false
 #| message: false
 #| warning: false
@@ -277,20 +324,68 @@ ggplot(model_data, aes(x = Date)) +
 future_data <- data.frame(
   Date = seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month"),
   Time = as.numeric(seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month") - min(model_data$Date)),
-  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60) # Example CPI projection
-)
+  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60))
 
 future_data$Predicted_Affordability <- predict(bay_model, newdata = future_data)
+fitted_values <- posterior_predict(bay_model, newdata = model_data)
+
+model_data <- model_data %>%
+  mutate(Predicted_Affordability = apply(fitted_values, 2, mean), 
+    CI_Lower = apply(fitted_values, 2, quantile, probs = 0.1), 
+    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9))
 
 ggplot() +
   geom_line(data = model_data, aes(x = Date, y = Affordability, color = "Observed")) +
   geom_line(data = future_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted")) +
+    geom_line(data = model_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted"),
+              size = 0.5, linetype = "dashed") +
+   geom_ribbon(data = model_data, aes(x = Date, ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), 
+              alpha = 0.15) +
   labs(title = "Observed and Predicted Affordability", y = "Affordability Index", x = "Date") +
   scale_color_manual(values = c("Observed" = "blue", "Predicted" = "red")) +
-  theme_minimal()
+  theme_minimal() + 
+  theme(legend.position = "bottom")
 
 ```
 
+
+## Discussion
+
+The interpretation of the model is shown in @fig-model, where the linear relationships is plotted between log of average price and log of CPI. The red regression line and lack of extreme outliers suggests a positive relationship between CPI and average grocery prices. The gradient of points indicates higher CPI values correspond to more recent years. 
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-model
+#| fig-cap: "Predicted linear model"
+
+model_data <- model_data %>%
+  mutate(
+    Fitted_Affordability = predict(elasticity_model))
+
+ggplot(model_data, aes(x = log(CPI), y = log(Average_Price), color = Year)) +
+  geom_point(size = 1.5, alpha = 0.8) + 
+  geom_smooth(method = "lm", color = "red", size = 0.7, se = TRUE) +
+  scale_color_viridis_c() +
+  labs(
+    title = "Elasticity of Average Price with Respect to CPI Over Time",
+    x = "Log(CPI)",
+    y = "Log(Average Price)",
+    color = "Year"
+  ) +
+  theme_minimal()
+```
+From @tbl-summary, 
+
+
+
+## Projected Affordibility Index
+
+
+- Model follows observed Affordability Index, caputring long-term trend
+- The Bayesian prediction smooths out short-term fluctuations (e.g., the volatility in observed values during 2018 and 2019). This indicates that while real-world affordability may be influenced by sudden events (e.g., market shocks), the underlying trend is governed by systematic factors such as inflation and wage growth, which the model captures.
+  - The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
+- The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
 
 
 
@@ -307,6 +402,14 @@ ggplot() +
 ## Next Steps
 
 - Perhaps a better question would be how does affordability compare to all sectors, not just grocery prices ?
+- not focus on wages as a whole, but idffernet classes and wage ranges 
+
+
+
+
+
+
+
 
 \newpage
 
@@ -325,9 +428,47 @@ Similar cleaning processes were used for each variable. The data is loaded in an
 
 ## Methodological Exploration of CPI Data Collection
 
+### Grocery Data Collection
+The reliability of affordability analysis is determined by the accuracy of the considered variables. This appendix will highlight the importance of how CPI data, grocery data, and wage data was collected and proceed, to ensure the credibility of the data.
+
+The CPI is an indicator used to measure the rate of inflation, with implementations in:
+- contracted payments, used to preserve purchasing power of a value,
+- obtaining constant dollar estimates of variables such as income of expenditure values,
+- monitoring implementation of economic policy,
+- research, such as cause and effect of inflation.
+
+The target population includes households in urban and rural households in Canada. Citizens with distinctive circumstances, such as collective households, those living on Indian reserves, official representatives, chronic care patients, prison inmates, etc. are excluded from the target population. 
+
+The CPI price sample is derived from a basket of representative foods and goods across all geographical areas and stores. Only stores with high sales revenues are included. The timing of price collection is set for the first two weeks of every month to ensure consistency, but may vary depending on the nature of the good. Season items are only observed in their respective months. To ensure the compliance of international guidelines regarding price index methodology, manual and automated processes are implemented to ensure product characteristics over time. 
+
+The general sampling approach for the grocery data involves three main stages to ensure representative data.
+- stage 1: Areas are divided into subdivisions of municipalities and neighborhoods. Population count is used in the selection process of these subdivisions to prioritize areas with larger populations. 
+- stage 2: Representative outlets (retail stores, small stores, or online retailers) are selected based on largest consumer purchases.
+- stage 3: Small samples of products are chosen from each product class to represent the broader class, based on popularity and research. Products with volatile prices, significant basket weights, and lower cost are prioritized. Each product class is weighed based on its share of total consumer expenditure. 
+
+Price collection is conducted by many methods through retail stores, flyers or online. Units of products are primary as possible, with goods usually measured per unit, per kilogram, or per liter. 
 
 
+#### Limitations of Methodolgy and Survey Samples
+- focusing on private households may affect analysis, since different households have different consumption patterns, may not represent broader Canadian population.
+- There is regional variation in price sampling, limited coverage for specific products in some areas 
+- a "judgmental" selection of the products 
+- sales, promotions, out- of-stock items, locally popular products, judgmental selection of products, all affect CPI accuracy. how?
 
+## Wage Data Collection
+
+## CPI Data
+
+
+## Linear Model Summary Statistics 
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| 
+summary(elasticity_model)
+```
 
 ## Postrior Predictive Check 
 
@@ -337,7 +478,6 @@ Similar cleaning processes were used for each variable. The data is loaded in an
 #| warning: false
 
 pp_check(bay_model)
-summary(bay_model)
 plot(bay_model, pars = "(Intercept)", prob = 0.95)
 ```
 

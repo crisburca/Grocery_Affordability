@@ -9,6 +9,7 @@
 
 #### Workspace setup ####
 library(tidyverse)
+library(janitor)
 
 #### Clean data ####
 
@@ -26,7 +27,8 @@ colnames(grocery_data) <- gsub(" ", "_", colnames(grocery_data))
 grocery_data <- grocery_data[-c(1), ]
 grocery_data <- head(grocery_data, -17)
 
-
+grocery_data <- grocery_data %>%
+  clean_names()
 
 # Remove unnecessary rows and format inflation data
 colnames(inflation_data) <- inflation_data[1, ] 
@@ -72,8 +74,8 @@ old_inflation_data <- old_inflation_data %>%
 
 # Extract month
 grocery_data <- grocery_data %>%
-  mutate(Year = year(dmy(paste("01", Products))), 
-         Month = month(dmy(paste("01", Products))))
+  mutate(Year = year(dmy(paste("01", products))), 
+         Month = month(dmy(paste("01", products))))
 
 # Extract month and Year
 inflation_data <- inflation_data %>%
@@ -81,31 +83,31 @@ inflation_data <- inflation_data %>%
          Month = month(dmy(paste("01", Date)))) 
 
 # Merge CPI data with grocery data by Year and month
-merged_data <- grocery_data %>%
+grocery_data <- grocery_data %>%
   left_join(inflation_data, by = c("Year", "Month"))
 
 # Merge wage data by Year
 avg_wage_data <- avg_wage_data %>%
   rename(Year = Date) 
 
-final_data <- merged_data %>%
+grocery_data <- grocery_data %>%
   left_join(avg_wage_data, by = "Year")
 
-final_data <- final_data %>%
+grocery_data <- grocery_data %>%
   mutate(CPI = as.numeric(CPI))
 
 # Extract reference CPI
-ref_cpi <- final_data %>%
+ref_cpi <- grocery_data %>%
   filter(Date == "January 2017") %>%
   pull(CPI)
 
 # Add CPI percentage column
-final_data <- final_data %>%
+grocery_data <- grocery_data %>%
   mutate(
     CPI_Percentage = (CPI - ref_cpi) / ref_cpi * 100)
 
 # Create Date column for plotting
-final_data <- final_data %>%
+grocery_data <- grocery_data %>%
   mutate(Date = as.Date(paste(Year, Month, "01", sep = "-")))
 
 
@@ -163,13 +165,12 @@ wage_changes <- old_inflation_wage_data %>%
   mutate(Wage_Percentage = (Wage - lag(Wage)) / lag(Wage) * 100) 
 
 old_inflation_wage_data <- old_inflation_wage_data %>%
-  mutate(Year = year(as.Date(Date))) %>% # Ensure Year column exists
+  mutate(Year = year(as.Date(Date))) %>% 
   left_join(wage_changes %>% select(Year, Wage_Percentage), by = "Year")
 
-old_inflation_wage_data
 
 #### Save data ####
-write_csv(final_data, "./data/02-analysis_data/grocery_data.csv")
+write_csv(grocery_data, "./data/02-analysis_data/grocery_data.csv")
 write_csv(inflation_data, "./data/02-analysis_data/inflation_data.csv")
 write_csv(avg_wage_data, "./data/02-analysis_data/avg_wage_data.csv")
 write_csv(inflation_wage_data, "./data/02-analysis_data/inflation_wage_data.csv")
