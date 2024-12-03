@@ -11,14 +11,8 @@
 library(tidyverse)
 library(janitor)
 
+
 #### Clean data ####
-
-grocery_data <- read.csv("./data/01-raw_data/grocery_prices.csv", skip = 7, header = TRUE)
-inflation_data <- read.csv("./data/01-raw_data/cpi_inflation.csv",  skip = 7, header = TRUE)
-avg_wage_data <- read.csv("./data/01-raw_data/wages_Year.csv", skip= 16, header = FALSE)
-old_wage_data <- read.csv("./data/01-raw_data/old_wages_Year.csv", skip= 16, header = FALSE)
-old_inflation_data <- read.csv("./data/01-raw_data/old_cpi_inflation.csv", skip= 7, header = TRUE)
-
 
 # Remove unnecessary rows and format grocery data
 colnames(grocery_data) <- grocery_data[1, ] 
@@ -160,8 +154,8 @@ old_inflation_wage_data <- old_inflation_wage_data %>%
   mutate(CPI_Percentage = (CPI - lag(CPI)) / lag(CPI) * 100)
 
 wage_changes <- old_inflation_wage_data %>%
-  group_by(Year) %>% # Group by Year to focus on unique yearly Wage values
-  summarise(Wage = first(Wage), .groups = "drop") %>% # Take the first Wage value for each year
+  group_by(Year) %>%
+  summarise(Wage = first(Wage), .groups = "drop") %>% 
   mutate(Wage_Percentage = (Wage - lag(Wage)) / lag(Wage) * 100) 
 
 old_inflation_wage_data <- old_inflation_wage_data %>%
@@ -175,3 +169,5 @@ write_csv(inflation_data, "./data/02-analysis_data/inflation_data.csv")
 write_csv(avg_wage_data, "./data/02-analysis_data/avg_wage_data.csv")
 write_csv(inflation_wage_data, "./data/02-analysis_data/inflation_wage_data.csv")
 write_csv(old_inflation_wage_data, "./data/02-analysis_data/old_inflation_wage_data.csv")
+
+arrow::write_parquet(preddata, "./data/02-analysis_data/cleaned.parquet")

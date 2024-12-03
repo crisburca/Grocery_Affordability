@@ -1,26 +1,18 @@
 #### Preamble ####
-# Purpose: Downloads and saves the data from [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 11 February 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
-# License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
-
+# Purpose: Download and save data
+# Author: Cristina Burca
+# Date: 02 December 2024
+# Contact: cristina.burca@mail.utoronto.ca
+# Pre-requisites: -
 
 #### Workspace setup ####
-library(opendatatoronto)
 library(tidyverse)
-# [...UPDATE THIS...]
 
 #### Download data ####
-# [...ADD CODE HERE TO DOWNLOAD...]
-
-
-
-#### Save data ####
-# [...UPDATE THIS...]
-# change the_raw_data to whatever name you assigned when you downloaded it.
-write_csv(the_raw_data, "inputs/data/raw_data.csv") 
+grocery_data <- read.csv("./data/01-raw_data/grocery_prices.csv", skip = 7, header = TRUE)
+inflation_data <- read.csv("./data/01-raw_data/cpi_inflation.csv",  skip = 7, header = TRUE)
+avg_wage_data <- read.csv("./data/01-raw_data/wages_Year.csv", skip= 16, header = FALSE)
+old_wage_data <- read.csv("./data/01-raw_data/old_wages_Year.csv", skip= 16, header = FALSE)
+old_inflation_data <- read.csv("./data/01-raw_data/old_cpi_inflation.csv", skip= 7, header = TRUE)
 
          

@@ -77,7 +77,7 @@ The important variables that are focused on throughout this paper:
  
 More about data cleaning in the appendix section appendix @data cleaning.
 
-# Data Analysis
+## Data Analysis
 
 The first variables examined are `CPI` and `Wage`. In @fig-cpiwage, we analyse normalized values of yearly average wages and monthly CPI from 2000 to 2023, as they are measured on different scales. This graph illustrates the trend between CPI and wages. The period of 2000 to 2020 shows a predominantly economically steady correlation between the two variables, with predictable inflation rates. However, the Covid-19 pandemic began in 2020, causing restricted movement globally, subsequently disruption global economies and changing consumer spending behaviour, shown by the sharp growth after 2020. This resulted in a decline in demand of goods and services, which is reflected in the CPI. By 2022, CPI rapidly inflates due to increase consumer demand as economies reopened, but wages remain on a somewhat steady increase. 
 
@@ -112,7 +112,7 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
     values = c("hotpink1", "lightseagreen"),
     labels = c("CPI", "Wage")) + 
   theme(legend.position = "bottom")
-normalized_data
+
 ```
 
 in @fig-cpiwage2017 between 2020-2022, covid. CPI went down because people were buying things, and wages went up surprisingly, since many people lost their jobs during covid, suggesting that companies were saving more money, people were getting paid more perhaps through bonuses and government covid funding. It is clear that the two variables are correlated, but may not necessarily depend on each other. 
@@ -216,6 +216,9 @@ ggplot() +
 We further explore this correlation through a model....
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 ggplot(grocery_data, aes(x = Date)) +
   geom_line(aes(y = Average_Price, color = "Grocery Prices")) +
   geom_line(aes(y = CPI, color = "CPI")) +
@@ -228,8 +231,18 @@ ggplot(grocery_data, aes(x = Date)) +
 
 ## Outcome Variables
 
-## Predictor Variables
+The Affordability Index serves as the outcome variable in the proceeding linear model. This index measures the ease with which households can afford a set of essential grocery list described. It is defined as:
+$$\mbox{Affordability Index}\frac{\mbox{Wage}}{\mbox{Average Price}},$$
+providing a direct measure of purchasing power for groceries, capturing how well wages can offset grocery price inflation. Higher values of the index indicate better affordability (wages adequately covering grocery prices), while lower values signal affordability challenges.
 
+## Predictor Variables
+The model includes the following predictor variables to explain variations in the Affordability Index:
+
+- CPI (Consumer Price Index):  The CPI is a unitless measure that tracks the overall inflation rate of goods and services relative to a base year. CPI is included to capture general inflation trends and their impact on grocery affordability. Although CPI is not specific to groceries, it provides context on broader economic conditions that may influence wages and purchasing power. A negative relationship is expected because since CPI is expected to increase grocery prices, and thus becoming less affordable. 
+- Average Price:  The Average Price variable represents the mean cost of the predefined basket of grocery items essential to Canadian households. This variable isolates grocery-specific inflation, enabling an analysis of how rising grocery prices impact affordability. A negative relationship is expected because higher grocery prices reduce purchasing power and affordability.
+- Time is included as a cumulative measure of the number of months since the start of the dataset in January 2017. 
+
+These predictors were selected to assess whether wage growth has kept pace with rising grocery prices and how affordability has changed over time.
 
 # Model 
 
@@ -301,42 +314,71 @@ modelsummary(list(
 @tbl-summary summarizes the coefficients of the model.
 
 
+@tbl-logsummary provides a summary of yearly averages and log-transformed values for key variables, offering an intuitive connection between the regression model and the observed data. These values will be interpreted further in the discussion section:
+
+
+
 ```{r, fig.width= 6.5, fig.height=4}
 #| echo: false
 #| message: false
 #| warning: false
 #| label: fig-modelsss
 #| fig-cap: "Affordability, CPI, and Average Price by Year"
+#| fig-cap-location: top
 
 model_data <- model_data %>%
   mutate(
     Fitted_Affordability = predict(elasticity_model))
+# Convert Year to integer
+model_data <- model_data %>% 
+  mutate(Year = as.integer(format(as.Date(Date), "%Y")))
 
-min_affordability <- min(model_data$Fitted_Affordability, na.rm = TRUE)
-max_affordability <- max(model_data$Fitted_Affordability, na.rm = TRUE)
+# Calculate baseline values for CPI, Price, and Wage for 2017
+baseline_cpi <- model_data %>% filter(Year == 2017) %>% summarize(mean(CPI, na.rm = TRUE)) %>% pull()
+baseline_price <- model_data %>% filter(Year == 2017) %>% summarize(mean(Average_Price, na.rm = TRUE)) %>% pull()
+baseline_wage <- model_data %>% filter(Year == 2017) %>% summarize(mean(Wage, na.rm = TRUE)) %>% pull()
+
+# Add Percent_CPI, Percent_Average_Price, and Percent_Wage columns
+model_data <- model_data %>%
+  mutate(
+    Percent_CPI = (CPI / baseline_cpi - 1) * 100,
+    Percent_Average_Price = (Average_Price / baseline_price - 1) * 100, 
+    Percent_Wage = (Wage / baseline_wage - 1) * 100)
 
 
-ggplot(model_data, aes(x = log(CPI), y = log(Average_Price), shape = factor(Year), color = exp(Fitted_Affordability))) +
-  geom_point(alpha = 0.7, size = 3) +
-  geom_smooth(aes(group = 1), method = "lm", color = "red", size = 0.7, se = TRUE) +
-#  scale_color_viridis_c(
-#    option = "plasma",
- #   limits = c(min_affordability, max_affordability),  # Dynamic range
- #   breaks = seq(min_affordability, max_affordability, length.out = 0.05),  # Define specific breaks for the legend
- #   name = "Fitted Affordability") +
-   scale_shape_manual(
+ggplot(model_data, aes(x = Percent_CPI, y = Percent_Average_Price, color = exp(Fitted_Affordability), shape = factor(Year))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", aes(group = 1), color = "red", size = 0.7, se = TRUE) +
+     scale_shape_manual(
     values = c(16, 6, 18, 1, 17, 10, 15)) +
+  scale_color_viridis_c() +
   labs(
-    x = "Log(CPI)",
-    y = "Log(Average Price)",
-    shape = "Year") +
+    title = "Affordability, CPI, and Average Price by Year",
+    x = "CPI (% Change from 2017)",
+    y = "Grocery Price (% Change from 2017)",
+    color = "Affordability Index") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+theme(legend.position = "bottom")
+
+
 
 
 ```
 
-@tbl-logsummary provides a summary of yearly averages and log-transformed values for key variables, offering an intuitive connection between the regression model and the observed data. These values will be interpreted further in the discussion section:
+# Discussion
+
+## Model Discussion 
+
+Inflation is often a reliable indicator of affordability for goods, including groceries. However, because inflation reflects changes in the prices of a wide variety of goods and services, it does not directly isolate grocery-specfic affordability. By examining the predicted Affordability Index from the linear model, this study assesses whether wage growth has kept pace with rising grocery prices through elastic relationships with CPI, average price, and time.
+
+The model some contrasting relationships between the Affordability Index and its predictors. Firstly, the intercept values of the elasticity model in @tbl-summary are intereprted as:
+
+- **The intercept (-0.284)** represents the expected log(Affordability) when all predictors are zero, serving as the baseline for the model.
+- **log(CPI) coefficient (0.397)**: The positive coefficient states that a 1% increase in CPI is associated with a 0.397% increase in the Affordability Index, holding other predictors constant. While this may seem counter-intuitive —given that inflation typically reduces affordability— it likely reflects a correlation between CPI and wage growth.
+- **log(Average_Price) coefficient (-0.685)**: The negative coefficient states that a 1% increase in Average Price is associated with a 0.685% decrease in Affordability, holding other predictors constant. This aligns with expectations, as higher grocery prices directly reduce purchasing power.
+- **log(Time) coefficient (0.024)**: The positive coefficient states that a 1% increase in time is associated with a 0.024% increase in the Affordability Index, holding other predictors constant. While small, this positive trends suggests gradual, incremental improvements in affordability over the study period.
+
+The intercept coefficients of the model shows that general inflation (CPI) has a positive, although seemingly contradictory, relationship with grocery affordability, while grocery-specific inflation strongly reduces affordability. Over time, affordability shows a slight but insufficient improvement, highlighting that rising grocery prices are the primary driver of declining affordability.
 
 ```{r}
 #| echo: false
@@ -344,23 +386,26 @@ ggplot(model_data, aes(x = log(CPI), y = log(Average_Price), shape = factor(Year
 #| warning: false
 #| label: tbl-logsummary
 
-
-model_data <- model_data %>% 
-  mutate(Year = as.integer(format(as.Date(Date), "%Y")))
-
-# Calculate yearly averages
+# Calculate yearly averages and include Percent_CPI, Percent_Average_Price, and Percent_Wage
 yearly_summary <- model_data %>%
   group_by(Year) %>%
   summarize(
     Avg_CPI = mean(CPI, na.rm = TRUE),
     Avg_Average_Price = mean(Average_Price, na.rm = TRUE),
-    Avg_Affordability = mean(Affordability, na.rm = TRUE)
-  ) %>%
+    Avg_Affordability = mean(Affordability, na.rm = TRUE),
+    Percent_CPI = mean(Percent_CPI, na.rm = TRUE), 
+    Percent_Average_Price = mean(Percent_Average_Price, na.rm = TRUE),
+    Percent_Wage = mean(Percent_Wage, na.rm = TRUE)) %>%
   mutate(
-    Log_CPI = log(Avg_CPI),
-    Log_Average_Price = log(Avg_Average_Price),
-    Log_Affordability = exp(log(Avg_Affordability))
-  )
+    Affordability_Index = exp(log(Avg_Affordability)) * 100) %>%
+  select(
+    Year, 
+    Avg_CPI, 
+    Avg_Average_Price, 
+    Affordability_Index, 
+    Percent_CPI, 
+    Percent_Average_Price, 
+    Percent_Wage)
 
 knitr::kable(
   yearly_summary,
@@ -368,39 +413,86 @@ knitr::kable(
     "Year",
     "Avg CPI",
     "Avg Grocery Price",
-    "Avg Affordability",
-    "Log CPI",
-    "Log Grocery Price",
-    "Affordability index"
-  ),
-  caption = "Yearly Averages and Log-Transformed Values for Key Variables",
-  digits = 3
-)
-
+    "Affordability Index (%)",
+    "Percent CPI (%)",
+    "Percent Grocery Price (%)",
+    "Percent Wage (%)"),
+  caption = "Yearly Averages, Affordability Index, and Percentage Changes with Wage",
+  digits = 2)
 
 ```
 
-# Discussion
+Considering CPI and Grocery Prices in @tbl-logsummary, it is apparent that these averages are rising. However, their increase is disproportionate. Between 2017 to 2023, CPI increase by ~20% (from 129.96 to 155.72), while groceries rose by ~32% (from \$123.40 to \$162.42). The faster rise in grocery prices indicates that grocery-specific inflation is growing faster than general inflation trends of Canada. Even if wages or broader economic adjustments help offset general inflation, they may not adequately address the sharp rise in grocery-specific costs.
 
-## Important discussion 
+The disproportionate growth is reflected in the Affordability Index, which declined from 0.217 in 2017 to 0.207 in 2023, representing a ~4.6% drop in grocery affordability over the six years. While the model shows small improvements in affordability during certain years (e.g., 2019 and 2021), these appear to be temporary and may align with periods of wage growth or slower grocery price inflation. For instance, during the COVID-19 pandemic, restrictions between 2020-2022 limited the sale of goods and services, temporarily lowering Canada's CPI and stabilizing grocery price growth. However, affordability declined sharply in 2022 and 2023 as grocery prices increased, highlighting that wage growth has not kept up with the rising cost of essential goods.
 
-Inflation usually is a good indicator to the affordability of groceries, however, inflation takes into account many other characteristics. To focus on the affect of purely grocery prices, we use the results of the predicted Affordability Index from the linear model to asses whether wage growth has kept with rising grocery prices through elastic relationships. 
+The positive correlation between CPI and affordability suggests that wages or economic adjustments have kept pace with general inflation, preventing broader grocery affordability declines. This indicates that broad inflation is not inherently detrimental to grocery affordability when accompanied by proportional increases in income or government support. In contrast, **the strong negative elasticity of Average Price highlights that grocery-specific inflation is the primary driver of affordability challenges**. Even if wages rise to match general inflation, rising grocery prices can counteract that increase.
 
-Interpreting the intercept values of the elasticity model in @tbl-summary:
-- **The intercept (-0.284)** is the expected log(Affordability) when all predictors are zero.
-- **log(CPI) coefficient (0.397)**  states that a 1% increase in CPI is associated with a 0.397% increase in Affordability, holding other predictors constant. This may seem counter-intuitive, since we expect CPI to decrease affordability. However, the increase in CPI may correlate with wage growth, which could lead to higher affordability. 
-- **log(Average_Price) coefficient (-0.685)** states that a 1% increase in Average Price is associated with a 0.685% decrease in Affordability, which aligns with expectations. 
-- **log(Time) coefficient (0.024)** states that a 1% increase in time is associated with a 0.024% increase in Affordability, suggesting a slight improvement in affordability over time. 
+The contrasting effects of CPI and Average Price highlight the importance of separating general inflation trends from grocery-specific price trends. The positive correlation between CPI and grocery affordability suggests that wages or other economic compensations may have kept pace with general inflation. This indicates that broad inflation is not inherently detrimental to grocery affordability if accompanied by proportional increases in income or government support. The strong negative impact of grocery prices highlights that grocery-specific inflation is a more significant concern. Even if wages rise to match general inflation, higher grocery prices can still disproportionately reduce affordability.
+
+The faster rise in grocery prices compared to CPI reveals that grocery-specific inflation is growing too rapidly for wages to keep up. As grocery prices increased by 32%, affordability declined, indicating that rising wages or other economic adjustments have been insufficient to maintain purchasing power for essential goods like groceries. This dynamic poses significant challenges for households and policymakers alike.
 
 
 
 
+```{r, fig.width= 6, fig.height=3.5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-analysis
+#| fig-cap: "Yap"
 
-**This paper examines the affordability of groceries in Canada between 2017 and 2023 by analyzing the relationship between grocery prices, inflation (CPI), and average wages. Using an affordability index, we assess whether wage growth has kept pace with rising grocery prices, with implications for future affordability under projected trends.
-How has the affordability of groceries in Canada changed over time, and to what extent has wage growth mitigated the impact of inflation on grocery prices?**
-## Projected Affordibility Indexvery vague Preditived Model
+# Calculate Wage-Price Gap and Add Affordability Index
+yearly_summary <- yearly_summary %>%
+  mutate(
+    Wage_Price_Gap = Percent_Wage - Percent_Average_Price)
 
-- hard to forecast short or long term events that affect CPI, such a strikes, government bills, diseas/sickness, etc, thus accurate model is very ahrd to predict. However, it is informative to have a general sense of where affordability will be in coming years.
+# Plot Updated Metrics
+ggplot(yearly_summary, aes(x = Year)) +
+  geom_line(aes(y = Percent_Average_Price, color = "Grocery Inflation"), size = 0.5) +
+  geom_line(aes(y = Percent_Wage, color = "Wage Growth"), size = 0.5) +
+  geom_line(aes(y = Wage_Price_Gap, color = "Wage-Price Gap"), size = 0.5, linetype = "dashed") +
+  geom_line(aes(y = Affordability_Index, color = "Affordability Index"), size = 0.5, linetype = "dotdash") +
+  scale_y_continuous(
+    name = "Percentage Change (%)",
+    sec.axis = sec_axis(~ ., name = "Affordability Index")
+  ) +
+  labs(
+    title = "Grocery Inflation vs Wage Growth",
+    x = "Year",
+    y = "Change (%)"
+  ) +
+  scale_color_manual(
+    name = "Metrics",
+    values = c(
+      "Grocery Inflation" = "orange2",
+      "Wage Growth" = "cadetblue2",
+      "Wage-Price Gap" = "forestgreen",
+      "Affordability Index" = "magenta4"
+    )
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+@fig-analysis compares all predictors Affordability Index, Grocery Inflation, Wage Growth, and an additional metric Wage-Price Gap, to measure the gap that interprets if Wage is keeping up with price. 
+
+The sharp upward trend in grocery inflation after 2020 indicates that grocery-specific prices are growing faster than general inflation, particularly during and after the COVID-19 Pandemic. While wages grew steadily over the years, it did not match the rapid rise in grocery prices, particularly after mid-2021. The consistent gap between grocery inflation and wage growth highlights that wages are failing to keep pace with grocery-specific inflation, directly impacting affordability.
+
+The wage-price gap represents the difference between wage growth and grocery inflation. A negative gap indicates that grocery prices are rising faster than wages, reducing affordability. The gap is relatively stable before 2020 but starts to decline sharply after 2021, turning increasingly negative by 2023, aligning with grocery inflation and slower wage growth during this period. A persistently negative wage-price gap confirms that grocery prices are rising too quickly for wages to offset, leading to worsening affordability.
+
+The Affordability Index declines slightly from 2017 to 2023, reflecting a cumulative drop of ~4.6%. The overall trend shows a decline in affordability, particularly after 2021, when the wage-price gap becomes significantly negative. The flat trajectory of the Affordability Index relative to the sharper decline in the wage-price gap suggests that broader economic factors may have mitigated some of the impact of rising grocery prices. However, these adjustments are insufficient to fully counteract the affordability challenges. The declining Affordability Index aligns with the negative wage-price gap, confirming that affordability has worsened as grocery prices outpace wage growth.
+
+*During 2017 to 2020, there was stable affordability:*
+With grocery inflation and wage growth rose at similar rates, resulting in a relatively stable wage-price gap and Affordability Index. This reflects a period of equilibrium where wage adjustments kept pace with rising grocery prices.
+
+*But during 2021 to 2023, there was declining affordability:*
+Where  grocery inflation accelerated, while wage growth slowed, widening the wage-price gap and reducing the Affordability Index. This period highlights the disproportionate impact of grocery-specific inflation on affordability, as wages failed to keep up with rising grocery prices.
+
+Ultimately, Grocery affordability has declined, as shown by the 4.6% drop in the **Affordability Index** and the increasingly negative wage-price gap since 2020. Wage growth has partially mitigated the impact of general inflation (CPI), as reflected in the stable Affordability Index prior to 2020. However, wage growth has not kept pace with the rapid rise in grocery prices since 2021, leading to significant affordability challenges.
+
+## Projected Affordibility Index
 
 ```{r}
 #| include: false
@@ -429,17 +521,21 @@ model_data <- model_data %>%
   mutate(Predicted_Affordability = predictions)
 ```
 
+@fig-prediction provides the observed and predicted Affordability Index over time and suggests trends for future affordability under the current conditions. 
+
 ```{r, fig.width= 7.5, fig.height=3.5}
 #| echo: false
 #| message: false
 #| warning: false
+#| label: fig-prediction
+#| fig-cap: "Yap"
+#| fig-cap-location: top
 
 # Create future data for predictions
 future_data <- data.frame(
   Date = seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month"),
   Time = as.numeric(seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month") - min(model_data$Date)),
-  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60)
-)
+  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60))
 
 # Extrapolate Average_Price (e.g., assuming a linear trend)
 # Use the slope of the historical trend
@@ -458,8 +554,7 @@ model_data <- model_data %>%
   mutate(
     Predicted_Affordability = apply(fitted_values, 2, mean), 
     CI_Lower = apply(fitted_values, 2, quantile, probs = 0.1), 
-    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9)
-  )
+    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9))
 
 # Plot observed and predicted affordability
 ggplot() +
@@ -470,41 +565,34 @@ ggplot() +
   geom_ribbon(data = model_data, aes(x = Date, ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), 
               alpha = 0.15) +
   labs(
-    title = "Observed and Predicted Affordability",
     y = "Affordability Index",
-    x = "Date"
-  ) +
+    x = "Date") +
   scale_color_manual(values = c("Observed" = "blue", "Predicted" = "red")) +
   theme_minimal() + 
   theme(legend.position = "bottom")
 
-
 ```
+The model aligns closely with the observed Affordability Index for the period between 2017 and 2023, capturing the overall trend in affordability while smoothing short-term fluctuations. Short-term fluctuations, such as the spikes during 2018–2019 and 2021, are likely caused by temporary market conditions, that is wage adjustments, temporary stabilization of grocery prices, or external shocks like COVID-19). These fluctuations are minimized by the Bayesian prediction. The predicted Affordability Index exhibits a gradual but clear decline, reflecting the underlying trend of affordability worsening over time. This aligns with the observed data and highlights that grocery-specific inflation continues to outpace wage growth under current conditions. The model projects a further decline in the Affordability Index beyond 2023, with affordability expected to fall below 20% by 2028. This decline is not immediately visible in raw data due to short-term fluctuations but becomes evident in the long-term projection.
 
+The model assumes current policies and economic conditions remain unchanged, making it difficult to predict the impact of unpredictable events such as strikes, government interventions, or global economic disruptions. While it provides a general sense of where affordability is headed, that is all it is, a highly indefinite prediction. External factors could significantly alter the predicted trend. 
 
-- Model follows observed Affordability Index, caputring long-term trend
-- The Bayesian prediction smooths out short-term fluctuations (e.g., the volatility in observed values during 2018 and 2019). This indicates that while real-world affordability may be influenced by sudden events (e.g., market shocks), the underlying trend is governed by systematic factors such as inflation and wage growth, which the model captures.
-  - The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
-- The smoothing effect helps reveal the underlying, systematic decline in affordability that may not be immediately visible in the raw data, which is influenced by noise or temporary fluctuations.
-
-
+Predicting affordability is inherently uncertain due to the potential influence of short- and long-term external factors (e.g., pandemics, economic shocks, or policy changes). However, the model is valuable for understanding the underlying trends in affordability and providing a general sense of direction for future planning.
 
 ## Limitations
-- limited produce 
-- limited data available (only from 2017)
-  - more recent data, 2024 has high spikes in groceries 
+The study focuses exclusively on grocery prices and their relationship to general inflation (CPI) and wages, without considering affordability in other sectors (e.g., housing, transportation, utilities, etc.). This narrow scope may underestimate the broader economic pressures faced by households.
+
+The analysis uses average wages across all workers, which does not account for variations across income classes, industries, or geographic regions. This aggregation may obscure disparities in how affordability challenges are distributed across different groups.
+
+The "average grocery basket" used in the study is limited in scope and may not reflect the diverse consumption patterns of Canadian households. Certain produce or specialty items could experience different inflation trends, impacting affordability unevenly.
 
 ## Next Steps
+Expand the research to compare affordability across different sectors, such as housing, transportation, and utilities, to better understand how grocery affordability fits into overall household expenses.
 
-- Perhaps a better question would be how does affordability compare to all sectors, not just grocery prices ?
-- not focus on wages as a whole, but different classes and wage ranges 
-- analyze data geogrpahically, by province 
+Investigate wage growth across different income classes, industries, provinces and geographic regions to understand how affordability challenges vary among groups. This would provide a more nuanced picture of affordability disparities.
 
+Evaluate how factors such as unemployment rates, household savings, or government subsidies influence affordability trends. This would provide a more comprehensive understanding of the economic context.
 
-
-
-
-
+By addressing these limitations and exploring the proposed next steps, future research could provide a more actionable analysis of grocery affordability in Canada.
 
 
 \newpage
@@ -632,6 +720,7 @@ summary(elasticity_model)
 #| echo: false
 #| message: false
 #| warning: false
+
 
 pp_check(bay_model) + plot(bay_model, pars = "(Intercept)", prob = 0.95)
 #put side by side
