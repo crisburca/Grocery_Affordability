@@ -1,6 +1,6 @@
 ---
-title: "are grocery prices attainable"
-subtitle: "Analysing grocery prices with inflation and wages"
+title: "Are grocery prices attainable?"
+subtitle: "Analysing grocery prices through an Affordability Index"
 author: Cristina Burca
 thanks: "Code and data are available at: [Are Groxeries Attainable](https://github.com/Mezhi18/US_Election2024.git)."
 date: today
@@ -25,6 +25,7 @@ library(tidyverse)
 library(knitr)
 library(rstanarm)
 library(modelsummary)
+library(patchwork)
 
 grocery_data <- read.csv("../data/02-analysis_data/grocery_data.csv")
 inflation_data <- read.csv("../data/02-analysis_data/inflation_data.csv")
@@ -37,13 +38,8 @@ old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage
 
 Inflation in Cananda has increased rampantly in all sectors, growing concerns about affordability. Within this, the roles of inflation and stagnant wages have made groceries less attainable for Canadians. Grocery prices have risen 22.5% since May of 2020, and continue to rise each month, creating panic for households (@CTVNews). In this paper, we explore the inflation rates of groceries in Canada from 2017 to 2023, relating it to wages. We then aim to predict the cost of groceries over the coming years, assessing if the increasing rate of wages is enough for groceries as an average Canadian. 
 
-
-"How have grocery prices in Canada changed over time, and how do these changes, relative to inflation and wages, affect the accessibility of groceries across socioeconomic classes?"
-
-
-
-Focus on a subset of comparable products (e.g., fruits vs. snacks, vegetables vs. processed foods).
- Analyze how prices for healthy and unhealthy groceries have changed over time.
+**This paper examines the affordability of groceries in Canada between 2017 and 2023 by analyzing the relationship between grocery prices, inflation (CPI), and average wages. Using an affordability index, we assess whether wage growth has kept pace with rising grocery prices, with implications for future affordability under projected trends.
+How has the affordability of groceries in Canada changed over time, and to what extent has wage growth mitigated the impact of inflation on grocery prices?**
 
 
 Overview paragraph
@@ -116,7 +112,7 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
     values = c("hotpink1", "lightseagreen"),
     labels = c("CPI", "Wage")) + 
   theme(legend.position = "bottom")
-
+normalized_data
 ```
 
 in @fig-cpiwage2017 between 2020-2022, covid. CPI went down because people were buying things, and wages went up surprisingly, since many people lost their jobs during covid, suggesting that companies were saving more money, people were getting paid more perhaps through bonuses and government covid funding. It is clear that the two variables are correlated, but may not necessarily depend on each other. 
@@ -194,6 +190,8 @@ even with increasing wages as CPI increases, there suggests that wage increasing
 #| echo: false
 #| message: false
 #| warning: false
+#| label: fig-avgprice5555
+#| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
 
 # Step 1: Prepare the data
 grocery_data <- grocery_data %>%
@@ -214,39 +212,67 @@ ggplot() +
   ) +
   theme_minimal()
 
-
 ```
 We further explore this correlation through a model....
 
+```{r}
+ggplot(grocery_data, aes(x = Date)) +
+  geom_line(aes(y = Average_Price, color = "Grocery Prices")) +
+  geom_line(aes(y = CPI, color = "CPI")) +
+  labs(title = "CPI vs. Grocery Prices Over Time", y = "Value", x = "Date") +
+  theme_minimal()
+
+```
+
+## Measurement
+
+## Outcome Variables
+
+## Predictor Variables
+
+
 # Model 
 
-Introduce model. We run it using @rstanarm...
+The motivation of the linear model employed is to evaluate the relationship between grocery affordability and its predictors-- CPI, Time and Average Price--, to quantify the elasticity of affordability with respect to these predictors. Elasticity reflects the proportional change in affordability in affordability for a 1% change in a given predictor, providing a practical interpretation of how affordability responds to economic changes. 
+
+ A linear model was chosen for its simplicity and straightforward interpretability of the relationships between variables. Specficially, a log-log linear regression model is chosen as the relationship between affordability and the predictors is expected to be approximately linear in logarithmic terms. The log transformation ensures linearity in log space, stabilize variance, and reduce the impact of outliers. Moreover, elasticity coefficients derived from log-log models simplify the assessment of proportional changes in affordability relative to changes in predictors.
 
 ## Model Setup 
+
+The model specification is as follows: 
 
 ```{=tex}
 \begin{align} 
 \mbox{log}(y_i)|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \beta_0 + \beta_1 \times \mbox{log(CPI)}_i + \beta_2 \times \mbox{log(Time)}_i\\
+\mu_i &= \beta_0 + \beta_1 \times \mbox{log(CPI)}_i  + \beta_2 \times \mbox{log(Average Price)}_i + \beta_3 \times \mbox{log(Time)}_i\\
 \beta_0 &\sim \mbox{Normal}(0, 2.5) \\
 \beta_1 &\sim \mbox{Normal}(0, 2.5) \\
 \beta_2 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_3 &\sim \mbox{Normal}(0, 2.5) \\
 \sigma &\sim \mbox{Exponential}(1)
 \end{align}
 ```
 
-The outcome variable of this model is a prediction of the affordability index, represented as $y_i$. The outcome is modeled as a function of CPI and Time. We choose not to use `Average_Price` as a predictor because it would cause redundancy, as affordability is defined in terms of wage and average price. This would cause multicollinearity issues, and produce almost exact results. Instead, we focus on the elastic 
+Where:
 
-- $y_i$ is the dependent variable, representing the Affordability Index,
-- $\beta_0$ is the intercept value, when all predictors are set to zero,
-- $\beta_1$ is a numerical variable, represent the elasticity
-- $\beta_2$ is a numerical variable of Date turned into a cumulative column of days for each month of the year. Captures the change in the mean response $\mu_i$ over time.
+- $y_i$ is the dependent variable, representing the Affordability Index($\mbox{Wage/ Average Price}$),
+- $\mu_i$: is the mean response, a function of the predictors, 
+- $\beta_0$ is the intercept, representing baseline affordability when all predictors are set to zero,
+- $\beta_1$ the elasticity of affordability with respect to CPI, indicating the proportional change in affordability for a 1% change in the CPI,
+- $\beta_2$ is the elasticity of affordability with respect to Average Price, representing impact of the changes in average grocery prices on affordability, 
+- $\beta_3$ is a numerical variable of Date turned into a cumulative column of days for each month of the year. Captures the change in $\mu_i$ over time.
 
-Each coefficient $\beta$ is assigned a Normal prior distribution, centered at zero, with a standard deviation of 2.5 to prevent overfitting. Exponential prior ensures that variance $\sigma > 0$. 
+Each coefficient $\beta_i$ is assigned a Normal prior $\mathcal{N}(0, 2.5)$ to regularize estimates and prevent overfitting. The residual variance $\sigma$ is modeled using an Exponential prior to ensure positive values.
+Each predictor captures an aspect of the Affordability Index:
 
-## Model Justification
+- **Consumer Price Index (CPI)**: Captures inflation and changes in general cost of goods and services, and the primary determinant of grocery prices, and evidently, the Affordability Index. As CPI increases, affordability is expected to decline. 
+- **Average Price**: Represent average monthly price of the defined basket in @datasec. Measures the cost of groceries comparatively. 
+- **Time**: Represented as a cumulative numeric variable corresponding to the number of days since the start of the dataset. Captures temporal change and long term shifts. 
 
-what do we expect the results to be...
+ The decision to exclude Wage as a predictor stems from the construction of the Affordability Index, which is already defined as the ratio of Wage to Average Price. Including Wage would introduce redundancy and lead to multicollinearity, and produce almost exact estimates.  
+
+### Model Justification
+
 
 ## Model Results 
 
@@ -254,7 +280,9 @@ what do we expect the results to be...
 #| include: false
 #| message: false
 #| warning: false
-elasticity_model <- lm(log(Affordability) ~ log(CPI) + log(Wage), data = model_data)
+
+model_data <- model_data %>% filter(Time > 0)
+elasticity_model <- lm(log(Affordability) ~ log(CPI) + log(Average_Price) + log(Time), data = model_data)
 ```
 
 ```{r, out.width= '100%'}
@@ -267,25 +295,110 @@ elasticity_model <- lm(log(Affordability) ~ log(CPI) + log(Wage), data = model_d
 modelsummary(list(
     "Elasticity Model" = elasticity_model),
   output = "latex",
-  stars = TRUE,
-    gof_omit = "(AIC|BIC|Log.Lik|R2 Adj.)")
+    gof_omit = "(AIC|BIC|Log.Lik|R2 Adj.|Num.Obs.|R2|RMSE)")
+
+```
+@tbl-summary summarizes the coefficients of the model.
+
+
+```{r, fig.width= 6.5, fig.height=4}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-modelsss
+#| fig-cap: "Affordability, CPI, and Average Price by Year"
+
+model_data <- model_data %>%
+  mutate(
+    Fitted_Affordability = predict(elasticity_model))
+
+min_affordability <- min(model_data$Fitted_Affordability, na.rm = TRUE)
+max_affordability <- max(model_data$Fitted_Affordability, na.rm = TRUE)
+
+
+ggplot(model_data, aes(x = log(CPI), y = log(Average_Price), shape = factor(Year), color = exp(Fitted_Affordability))) +
+  geom_point(alpha = 0.7, size = 3) +
+  geom_smooth(aes(group = 1), method = "lm", color = "red", size = 0.7, se = TRUE) +
+#  scale_color_viridis_c(
+#    option = "plasma",
+ #   limits = c(min_affordability, max_affordability),  # Dynamic range
+ #   breaks = seq(min_affordability, max_affordability, length.out = 0.05),  # Define specific breaks for the legend
+ #   name = "Fitted Affordability") +
+   scale_shape_manual(
+    values = c(16, 6, 18, 1, 17, 10, 15)) +
+  labs(
+    x = "Log(CPI)",
+    y = "Log(Average Price)",
+    shape = "Year") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
 
 ```
 
-Interpreting @tbl-summary, this table summarized the result of the elasticity model, which quantifies how changes in one variables affect changes in another through logarithmic transformations. Log transformations linearize relationships between variables, and we use a log-log model to directly represent elasticizes-- defined as a 1% percent change in the dependent for a 1% change in the independent variable. 
-In this equation, $\beta_1$ represents elasticity of Affordability with respect to CPI, and $\beta_2$ represents the elasticity of Affordability with respect to Wage. 
-The summary statistics are understood to be as followed:
+@tbl-logsummary provides a summary of yearly averages and log-transformed values for key variables, offering an intuitive connection between the regression model and the observed data. These values will be interpreted further in the discussion section:
 
-- $\beta_0$ is the intercept value of 1.202, which is when both log(CPI) and log(Wage) are set to 0,
-- $\beta_1$ is log(CPI) with a coefficient of -0.885, meaning a 1% increase in CPI leads to a 0.885% decrease in affordability, when Wages are constant,
-- $\beta_2$ is log(Wage) with coefficient 0.484, meaning a 1% increase in wages leads to a 0.484% increase in affordability, when CPI is constant. 
-
-Thus, wage growth positively affects affordability but does not fully offset inflation's negative impact.
-
-Model fit metrics will be discussed in @apendix. 
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-logsummary
 
 
-## very vague Preditived Model
+model_data <- model_data %>% 
+  mutate(Year = as.integer(format(as.Date(Date), "%Y")))
+
+# Calculate yearly averages
+yearly_summary <- model_data %>%
+  group_by(Year) %>%
+  summarize(
+    Avg_CPI = mean(CPI, na.rm = TRUE),
+    Avg_Average_Price = mean(Average_Price, na.rm = TRUE),
+    Avg_Affordability = mean(Affordability, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Log_CPI = log(Avg_CPI),
+    Log_Average_Price = log(Avg_Average_Price),
+    Log_Affordability = exp(log(Avg_Affordability))
+  )
+
+knitr::kable(
+  yearly_summary,
+  col.names = c(
+    "Year",
+    "Avg CPI",
+    "Avg Grocery Price",
+    "Avg Affordability",
+    "Log CPI",
+    "Log Grocery Price",
+    "Affordability index"
+  ),
+  caption = "Yearly Averages and Log-Transformed Values for Key Variables",
+  digits = 3
+)
+
+
+```
+
+# Discussion
+
+## Important discussion 
+
+Inflation usually is a good indicator to the affordability of groceries, however, inflation takes into account many other characteristics. To focus on the affect of purely grocery prices, we use the results of the predicted Affordability Index from the linear model to asses whether wage growth has kept with rising grocery prices through elastic relationships. 
+
+Interpreting the intercept values of the elasticity model in @tbl-summary:
+- **The intercept (-0.284)** is the expected log(Affordability) when all predictors are zero.
+- **log(CPI) coefficient (0.397)**  states that a 1% increase in CPI is associated with a 0.397% increase in Affordability, holding other predictors constant. This may seem counter-intuitive, since we expect CPI to decrease affordability. However, the increase in CPI may correlate with wage growth, which could lead to higher affordability. 
+- **log(Average_Price) coefficient (-0.685)** states that a 1% increase in Average Price is associated with a 0.685% decrease in Affordability, which aligns with expectations. 
+- **log(Time) coefficient (0.024)** states that a 1% increase in time is associated with a 0.024% increase in Affordability, suggesting a slight improvement in affordability over time. 
+
+
+
+
+
+**This paper examines the affordability of groceries in Canada between 2017 and 2023 by analyzing the relationship between grocery prices, inflation (CPI), and average wages. Using an affordability index, we assess whether wage growth has kept pace with rising grocery prices, with implications for future affordability under projected trends.
+How has the affordability of groceries in Canada changed over time, and to what extent has wage growth mitigated the impact of inflation on grocery prices?**
+## Projected Affordibility Indexvery vague Preditived Model
 
 - hard to forecast short or long term events that affect CPI, such a strikes, government bills, diseas/sickness, etc, thus accurate model is very ahrd to predict. However, it is informative to have a general sense of where affordability will be in coming years.
 
@@ -295,7 +408,7 @@ Model fit metrics will be discussed in @apendix.
 #| warning: false
 
 # Step 2: Define the model
-model <- Affordability ~ CPI + Time
+model <- Affordability ~ CPI + Average_Price + Time
 
 # Step 3: Fit the Bayesian model
 priors <- normal(0, 2.5, autoscale = TRUE)
@@ -321,65 +434,52 @@ model_data <- model_data %>%
 #| message: false
 #| warning: false
 
+# Create future data for predictions
 future_data <- data.frame(
   Date = seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month"),
   Time = as.numeric(seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month") - min(model_data$Date)),
-  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60))
+  CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60)
+)
 
+# Extrapolate Average_Price (e.g., assuming a linear trend)
+# Use the slope of the historical trend
+historical_slope <- coef(lm(Average_Price ~ Time, data = model_data))[2]
+future_data$Average_Price <- max(model_data$Average_Price) + 
+  historical_slope * (future_data$Time - max(model_data$Time))
+
+# Predict affordability for future data
 future_data$Predicted_Affordability <- predict(bay_model, newdata = future_data)
+
+# Fit Bayesian posterior predictions for the current model data
 fitted_values <- posterior_predict(bay_model, newdata = model_data)
 
+# Add predicted affordability and confidence intervals to historical data
 model_data <- model_data %>%
-  mutate(Predicted_Affordability = apply(fitted_values, 2, mean), 
+  mutate(
+    Predicted_Affordability = apply(fitted_values, 2, mean), 
     CI_Lower = apply(fitted_values, 2, quantile, probs = 0.1), 
-    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9))
+    CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9)
+  )
 
+# Plot observed and predicted affordability
 ggplot() +
   geom_line(data = model_data, aes(x = Date, y = Affordability, color = "Observed")) +
   geom_line(data = future_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted")) +
-    geom_line(data = model_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted"),
-              size = 0.5, linetype = "dashed") +
-   geom_ribbon(data = model_data, aes(x = Date, ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), 
+  geom_line(data = model_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted"),
+            size = 0.5, linetype = "dashed") +
+  geom_ribbon(data = model_data, aes(x = Date, ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), 
               alpha = 0.15) +
-  labs(title = "Observed and Predicted Affordability", y = "Affordability Index", x = "Date") +
+  labs(
+    title = "Observed and Predicted Affordability",
+    y = "Affordability Index",
+    x = "Date"
+  ) +
   scale_color_manual(values = c("Observed" = "blue", "Predicted" = "red")) +
   theme_minimal() + 
   theme(legend.position = "bottom")
 
+
 ```
-
-
-## Discussion
-
-The interpretation of the model is shown in @fig-model, where the linear relationships is plotted between log of average price and log of CPI. The red regression line and lack of extreme outliers suggests a positive relationship between CPI and average grocery prices. The gradient of points indicates higher CPI values correspond to more recent years. 
-```{r}
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-model
-#| fig-cap: "Predicted linear model"
-
-model_data <- model_data %>%
-  mutate(
-    Fitted_Affordability = predict(elasticity_model))
-
-ggplot(model_data, aes(x = log(CPI), y = log(Average_Price), color = Year)) +
-  geom_point(size = 1.5, alpha = 0.8) + 
-  geom_smooth(method = "lm", color = "red", size = 0.7, se = TRUE) +
-  scale_color_viridis_c() +
-  labs(
-    title = "Elasticity of Average Price with Respect to CPI Over Time",
-    x = "Log(CPI)",
-    y = "Log(Average Price)",
-    color = "Year"
-  ) +
-  theme_minimal()
-```
-From @tbl-summary, 
-
-
-
-## Projected Affordibility Index
 
 
 - Model follows observed Affordability Index, caputring long-term trend
@@ -389,11 +489,6 @@ From @tbl-summary,
 
 
 
-
-
-
-# Discussion
-
 ## Limitations
 - limited produce 
 - limited data available (only from 2017)
@@ -402,7 +497,8 @@ From @tbl-summary,
 ## Next Steps
 
 - Perhaps a better question would be how does affordability compare to all sectors, not just grocery prices ?
-- not focus on wages as a whole, but idffernet classes and wage ranges 
+- not focus on wages as a whole, but different classes and wage ranges 
+- analyze data geogrpahically, by province 
 
 
 
@@ -419,19 +515,19 @@ From @tbl-summary,
 This section will be explaining the data cleaning process documented in `/scripts/03-clean_data`. 
 
 I used a 3 different datasets, split between 5 files. `old_inflation_data` and `inflation_data` are from the same source, but `old_inflation_data` contains years 2000 to 2023. The same was done for `old_wage_data`. This decision was done to make a broader analysis over many years easier, since data for `grocery_data` is only available from 2017 and on- variables `avg_wage_data` and `inflation_data` only contain data from 2017 and on as well.
-Similar cleaning processes were used for each variable. The data is loaded in and the first couple of rows are skipped since they contains subheadings?.  One of the rows is kept for the column names using `colnames`, which then are renamed. `gsub` is used to rename the column names to remove spaces and characters that would conflict with the code. `mutate was used to extract year and month columns for `grocery_data` and `inflation_data`,and `old_inflation_data`, since these variables are recorded monthly. `left_join` Is used to merge `inflation_data` to `grocery_data` by variables `year` and `month`.
+Similar cleaning processes were used for each variable. The data is loaded in and the first couple of rows are skipped since they contains subheadings?.  One of the rows is kept for the column names using `colnames`, which then are renamed. `gsub` is used to rename the column names to remove spaces and characters that would conflict with the code. mutate was used to extract year and month columns for `grocery_data` and `inflation_data`,and `old_inflation_data`, since these variables are recorded monthly. `left_join` Is used to merge `inflation_data` to `grocery_data` by variables `year` and `month`.
 
+`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and ‘old_inflation_wage_data’, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data`.
 
-`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and ‘old_inflation_wage_data’, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data’.
+Wages used are averages of all industries, of part-time and full-time employees, for people 15 and older. 
 
-
-
-## Methodological Exploration of CPI Data Collection
-
-### Grocery Data Collection
+## Methodological Exploration of Data Collection
 The reliability of affordability analysis is determined by the accuracy of the considered variables. This appendix will highlight the importance of how CPI data, grocery data, and wage data was collected and proceed, to ensure the credibility of the data.
 
-The CPI is an indicator used to measure the rate of inflation, with implementations in:
+
+### Grocery Data Collection And CPI Calculation
+The CPI is an indicator used to measure the rate of inflation. It is calculated by using price data collected for specific goods and services, such us groceries,household goods, gas, utilities, etc., and thus includes the grocery data used in this paper. The CPI has implementations in:
+
 - contracted payments, used to preserve purchasing power of a value,
 - obtaining constant dollar estimates of variables such as income of expenditure values,
 - monitoring implementation of economic policy,
@@ -441,23 +537,81 @@ The target population includes households in urban and rural households in Canad
 
 The CPI price sample is derived from a basket of representative foods and goods across all geographical areas and stores. Only stores with high sales revenues are included. The timing of price collection is set for the first two weeks of every month to ensure consistency, but may vary depending on the nature of the good. Season items are only observed in their respective months. To ensure the compliance of international guidelines regarding price index methodology, manual and automated processes are implemented to ensure product characteristics over time. 
 
+#### Sampling Approach
 The general sampling approach for the grocery data involves three main stages to ensure representative data.
+
 - stage 1: Areas are divided into subdivisions of municipalities and neighborhoods. Population count is used in the selection process of these subdivisions to prioritize areas with larger populations. 
 - stage 2: Representative outlets (retail stores, small stores, or online retailers) are selected based on largest consumer purchases.
 - stage 3: Small samples of products are chosen from each product class to represent the broader class, based on popularity and research. Products with volatile prices, significant basket weights, and lower cost are prioritized. Each product class is weighed based on its share of total consumer expenditure. 
 
-Price collection is conducted by many methods through retail stores, flyers or online. Units of products are primary as possible, with goods usually measured per unit, per kilogram, or per liter. 
+Price collection is conducted by many methods through retail stores, flyers or online. For some product classes that have national. Provincial pricing, prices may be collected centrally through retailer websites. Units of products are primary as possible, with goods usually measured per unit, per kilogram, or per liter. More detailed explanation of sampling apporach in chapter 5 of (@CPIappen). 
 
+#### Calculations of the Consumer Price Index
+After samples are collected, the CPI is calculated through two stages. 
+
+During the first stage, price changes are calculated for group called *elementary aggregates*, that are small categories of similar products in specific locations. Average price change, known as the *elementary index* is calculated using Jevons formula, defined by:
+$$
+I^{t-1;t}_{J,a} = \prod_{i=1}^{n} \left( \frac{p^t_i}{p^{t-1}_i} \right) ^{1/n},
+$$
+where:
+
+- $I^{t-1;t}_{J,a}$ is the weighed Jevons price index for an elementary aggregate $a$ between periods $t-1$ and $t$, 
+- $n$ is the number of product prices $i$ in $a$, and
+- $\left( \frac{p^t_i}{p^{t-1}_i} \right)^{1/n}$ is the price relative for $i$ between periods $t-1$ and $t$. 
+The Jevons formula is the primary method used by Statistics Canada since 1995. It calculates a geometric mean of price relatives, to depend the ratio on previous prices. This formula can be interpreted as an average of price changes, as well as a change in average prices between periods, allowing for easy data analysis.
+
+In the second stage, calculated elementary indices are combined into *aggregate indices* that measure price changes for larger categories. Each aggregate index is assigned a weight that accurately represents consumer expenditure, and then combined into a single CPI value for the entire country. More detail in chapter 6 of (@CPIappen).
+
+Adjustments are made to product prices to compensate for quality change in products over time. Implicit methods assume there is no major quality differences, and thus rely on indirect calculations. Some of these methods are:
+
+- Direct Price Comparison: For where there is no quality difference in old and new products, such as gas or electricity,
+- Overlap Pricing: applied when old and new products are sold concurrently,
+- Mean Imputation: imputes price changes of new products based on average price movements of similar products, 
+- Quantity adjustment: Adjusts for changes in produce quantity, for example package size, assuming the quality of the product remains constant. This common for packaged food items and household items, and impacts most of the grocery data used this paper. 
+
+Explicit methods directly account for quality differences by comparing old and new products. Hedonic Quality Adjustment is used for products rapidly changing features, such as software, or services like internet and cellular plans. This method replies of regressions models to estimate relationships between price and product characteristics. Regression models are used to predict prices based on features, like CPU and RAM of a laptop, and separate regressions are run for features like download speed and upload speed of internet services. Regression variables are weighed accordingly to their relevance to the product or service. More detail in chapter 7 of (@CPIappen). 
+
+By implementing these quality adjustments ensure that CPI reflects pure price changes.
 
 #### Limitations of Methodolgy and Survey Samples
-- focusing on private households may affect analysis, since different households have different consumption patterns, may not represent broader Canadian population.
-- There is regional variation in price sampling, limited coverage for specific products in some areas 
-- a "judgmental" selection of the products 
-- sales, promotions, out- of-stock items, locally popular products, judgmental selection of products, all affect CPI accuracy. how?
+The calculation of the CPI is subject to several limitations that an impact the accuracy and representativeness. One limitation is the focus on private households, which many capture the consumption patterns of all Canadians. Combined households are not included in the survey, which can account for and percentage of the overall population of Ontario, and Canada. Different households have varying purchasing behaviors influenced by income, cultural and personal preferences, and household composition, which may not reflect the broader Canadian population. Furthermore, there is significant regional variation in price sampling, and limited coverage of specific products in certain areas. The lack of geographic representation may skew results, especially for locally popular or region-specific goods. 
 
-## Wage Data Collection
+Another limitation is the reliance on a "judgmental" selection of products within each category. While this approach prioritizes commonly purchased items, it introduces subjectivity. Although selection is based on market research, it also depends on the expertise of those making the selection. This method may overlook less popular but significant products. Additionally, the handling/ manipulation of sales, promotions, and out-of-stock items presents challenges to accuracy. When items are unavailable or missing price data, estimates of the prices are made based on similar products or locations, or simply substituted. While these methods aim to maintain continuity in the index, it may introduce inaccuracies that do not fully capture the original products price dynamics or consumer preference. 
 
-## CPI Data
+These limitation highlight trade-offs in CPI calculations, ensuring representativeness while managing constraints in data collection. 
+
+### Wage Data Collection
+Wage data was obtained from the Labour Force Survey (LFS). the LFS is monthly household survey conducted by Statistics Canada to gather data on the Canadian Labour Market. A survey, in the form of a questionnaire, is completely by eligible individuals in the samples. 
+
+#### Sampling Methodology
+The LFS uses a stratified multi-staged probability approach for their samples, dividing each province into large geographic strata. In the first stage, smaller geographic areas, known as clusters, are selected within each stratum. In the second stage, dwellings are chosen from these clusters.
+
+The LFS utilizes a Rotating Panel Design, where initially selected households participate for six consecutive months in the collection of data, with about one-sixth of the sample replaced each month. The sample covers approximately 68,000 households monthly, collecting data from around 100,000 individuals. This approach balances the need for up-to-date information with the benefits of tracking changes over time.
+
+#### Data Collection
+The target population of the survey include all people aged 15 and older who's main country of residence is Canada, including citizens, non-permanent residents and permanent residents. Excluded from the population are those who live on reserves, full-time members of Armed Forces, and people living in institutions. Surveys are conducted via in-person interviews, telephone interviews, or self-completed electronic questionnaires. The LFS practices proxy reporting, where one individual per household provides the information for the entire household, which accounts for a significant portion of the responses, about 65%.  
+
+The questionnaire is periodically redesigned to reflect the changes in the Canadian Labour Market. These changes are rigorously tested through review committees, focus groups, and pilot tests to ensure reliability. The most recent full questionnaire can be found here [@LFSsurvey], effective since January 1st, 2023.
+
+
+#### Error Detection and Imputation
+As a sample survey, the LFS is subject to sampling and non- sampling errors, that can rise from data collection and processing. To mitigate these issues, the LFS has several error detection and imputation strategies to ensure data reliability. employed comprehensive training, through questionnaire testing, and questions are researched to ensure clarity and ambiguity. Interviewers undergo comprehensive training,through questionnaire testing, and questions are researched to ensure clarity and ambiguity.Additionally, electronic questionnaires are programmed to flag out-of-range or inconsistent responses for immediate human verification. Post-collection, further imputation methods are executed to handle missing or incorrect data. These methods include:
+
+- Deterministic Imputation: Missing/incomplete data is replace with logically consistent values,
+- Carry-Forward Imputation: Data from the previous month is carried over to the current month's missing values, when appropriate, and
+- Donor Imputation: Data from a similar individual (considered the 'donor') with comparable characteristics to fill in gaps when the aim is to maintain consistency and minimize bias.
+
+#### Weighting Adjustments
+For non-responding households, weights are adjusted to assume that these households have similar characteristics to responding ones, in attempt to minimize non-response bias. After non-response adjustments, weights are refined to correct for coverage errors, when populations are misrepresented, by adjusting weights to ensure final weighted estimates align with census projections for demographic groups, age, gender, region, etc. Moreover, sampling variance is addressed by compounding overlapping consecutive monthly samples by stabilizing estimates from past surveys, to increase efficiency and reduce variance.
+
+These major weight adjustments improve estimate accuracy by ensuring that surveys reflect the true population distribution, and thus are consistent and reliable, even when drawing from different samples. 
+
+#### Limitations of the LFS
+While the LFS has a comprehensive process for collection information, it has some limitations that should be considered. The LFS does exclude some populations, as described above, which may not fully represent the labour market conditions for these groups. 
+
+Non-response remains a challenge in many surveys, even with attempted follow up efforts. Adjustments are made to account for these reports, but the assumption of similarity of dispositions between households may not hold true for all instances. Proxy reporting can also lead to inaccuracies due to the proxy's incomplete knowledge or misreporting. Furthermore, sampling variability from different samples could produce varied estimates, particular for smaller population groups or regions. While weight adjustments are implemented to attenuate this, the estimates may still be impacted by these fluctuations. 
+
+Despite these limitations, the LFS employes effective methodologies to maintain data quality. For a more detailed explication of the LFS, refer to [@LFSsurvey].
 
 
 ## Linear Model Summary Statistics 
@@ -466,8 +620,10 @@ Price collection is conducted by many methods through retail stores, flyers or o
 #| echo: false
 #| message: false
 #| warning: false
-#| 
+
 summary(elasticity_model)
+
+
 ```
 
 ## Postrior Predictive Check 
@@ -477,8 +633,9 @@ summary(elasticity_model)
 #| message: false
 #| warning: false
 
-pp_check(bay_model)
-plot(bay_model, pars = "(Intercept)", prob = 0.95)
+pp_check(bay_model) + plot(bay_model, pars = "(Intercept)", prob = 0.95)
+#put side by side
+#in rohan notes
 ```
 
 
