@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Download and save data
+# Purpose: Clean data and foramt for paper
 # Author: Cristina Burca
 # Date: 02 December 2024
 # Contact: cristina.burca@mail.utoronto.ca

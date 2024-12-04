@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Save linear model
+# Purpose: Save linear model .rds file
 # Author: Cristina Burca
 # Date: 02 December 2024
 # Contact: cristina.burca@mail.utoronto.ca
