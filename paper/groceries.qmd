@@ -538,7 +538,7 @@ model_data <- model_data %>%
 #| message: false
 #| warning: false
 #| label: fig-prediction
-#| fig-cap: "Yap"
+#| fig-cap: "Predicted Affordability Index to 2028 based on past records"
 #| fig-cap-location: top
 
 # Create future data for predictions
