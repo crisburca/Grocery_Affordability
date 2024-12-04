@@ -1,11 +1,11 @@
 ---
-title: "Are grocery prices attainable?"
-subtitle: "Analysing grocery prices through an Affordability Index"
+title: "Understanding the Decline in Grocery Affordability in Canada"
+subtitle: "How Wage Growth Fails to Keep Up with Grocery-Specific Inflation"
 author: Cristina Burca
-thanks: "Code and data are available at: [Are Groxeries Attainable](https://github.com/Mezhi18/US_Election2024.git)."
+thanks: "Code and data are available at: [Are Groceries Attainable](https://github.com/Mezhi18/US_Election2024.git)."
 date: today
 date-format: long
-abstract: "We analyse the probability of Kamala Harris winning in the 7 swing states of USA using baysian modeling;the states we look at are Arizona, Michigan, Pennsylvania, Nevada, Georgia, Wisconsin and North Carolina. USA is a large country with its national economy affecting the global economic conditions, which is why predicting the future President of USA will help understand the future economic condiotion of the world. Through baysian modelling we found that North Carolina (47.26% support for Harris), Nevada(46.43% support for Harris), Wisconsin(48.38% support for Harris), Michigan(47.30% support for Harris), Pennsylvania(48.02% support for Harris) will vote Kamala Harris, while the rest of the swing states might vote Donald Trump, meaning that majority of the swing states will vote Kamala Harris. Provided this we predict that Kamala Harris will win the election. By creating a baysian model based on 'polls of polls'  where we compare the results from different polls, we are able to make this prediction."
+abstract: "This paper examines the affordability of groceries in Canada from 2017 to 2023, analyzing the relationship between grocery prices, inflation (CPI), and wages through an Affordability Index. We find that grocery prices rose by ~32%, outpacing both inflation (~20%) and wage growth (~22%), resulting in a ~4.6% decline in grocery affordability. While wage growth partially mitigates general inflation, grocery-specific inflation drives a significant decline in affordability, disproportionately affecting households. These findings highlight the growing challenge of maintaining grocery affordability in Canada."
 format:
   pdf:
     bibliography: references.bib
@@ -37,7 +37,7 @@ old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage
 
 # Introduction
 
-Inflation in Canada has increased significantly across all sectors, raising concerns about affordability for households. Among these, the rapid rise in grocery prices has emerged as a critical issue. Since May 2020, grocery prices have increased by 22.5% and continue to climb each month, straining the budgets of Canadians and creating widespread economic anxiety ([CTV News]). In this context, the intersection of rising inflation, stagnant wage growth, and sector-specific price surges has made essential groceries increasingly unattainable for many households. This paper explores the relationship between grocery prices, general inflation (CPI), and wages in Canada from 2017 to 2023. Through the development of an Affordability Index, we assess whether wage growth has kept pace with rising grocery prices, and we predict the future affordability of groceries under current economic trends.
+Inflation in Canada has increased significantly across all sectors, raising concerns about affordability for households. Among these, the rapid rise in grocery prices has emerged as a critical issue. Since May 2020, grocery prices have increased by 22.5% and continue to climb each month, straining the budgets of Canadians and creating widespread economic anxiety (@CTVNews). In this context, the intersection of rising inflation, stagnant wage growth, and sector-specific price surges has made essential groceries increasingly unattainable for many households. This paper explores the relationship between grocery prices, general inflation (CPI), and wages in Canada from 2017 to 2023. Through the development of an Affordability Index, we assess whether wage growth has kept pace with rising grocery prices, and we predict the future affordability of groceries under current economic trends.
 
 Using historical data, this paper analyzez trends in general inflation (CPI) and sector-specific grocery inflation, alongside average wage growth, to evaluate their combined effect on affordability. The Affordability Index, calculated as the ratio of average wages to grocery prices, is used to track affordability trends over time and forecast future affordability challenges. This analysis sheds light on whether wage growth has been sufficient to counteract inflation and maintain stable grocery affordability for Canadians.
 
@@ -114,8 +114,15 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
  theme_minimal() +
   scale_color_manual(
     values = c("red2", "cadetblue3"),
-    labels = c("CPI", "Wage")) + 
-  theme(legend.position = "bottom")
+    labels = c("CPI", "Wage")) +
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(-0.5, "lines"))
 
 
 
@@ -128,7 +135,7 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
 #| message: false
 #| warning: false
 #| label: fig-cpiwage2017
-#| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
+#| fig-cap: "Percentage trends of Grocery Prices and CPI from 2017 to 2023"
 #| fig-cap-location: top
 
 
@@ -142,10 +149,19 @@ grocery_data <- grocery_data %>%
 ggplot(grocery_data, aes(x = Date)) +
   geom_line(aes(y = Average_Price, color = "Grocery Prices"), size = 0.25) +
   geom_line(aes(y = CPI, color = "CPI"), size = 0.25) +
-  labs(y = "Value", x = "Date") +
+  labs(y = "Value", x = "Date", color = "Measure") +
   scale_color_manual(values = c("cadetblue3", "red2"), labels = c("Grocery Prices", "CPI")) +
   scale_x_date(date_breaks = "18 months", date_labels = "%b %Y") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(-0.5, "lines"))
+
 
 ```
 
@@ -158,7 +174,7 @@ ggplot(grocery_data, aes(x = Date)) +
 #| message: false
 #| warning: false
 #| label: fig-affordind
-#| fig-cap: "Normalized CPI and Wages Over Time from 2017 to 2023"
+#| fig-cap: "Affordability Index from 2017 to 2023"
 #| fig-cap-location: top
 
 
@@ -166,7 +182,15 @@ ggplot(grocery_data, aes(x = Date, y = Affordability)) +
   geom_line(color = "hotpink", size = 0.4) +
   labs(y = "Affordability Index", x = "Date") +
   scale_x_date(date_breaks = "12 months", date_labels = "%b %Y") +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(-0.5, "lines"))
 
 ```
 
@@ -184,41 +208,32 @@ The primary objective of the analysis is to assess the relationship between groc
 #| message: false
 #| warning: false
 #| label: tbl-overview
-#| tbl-cap: "Inflation and Wage Growth Comparison"
+#| tbl-cap: "Percent changes in CPI, Grocery Prices, and Wages"
 
-
-# Calculate year-over-year percentage changes
 percentage_changes <- grocery_data %>%
   group_by(Year) %>%
   summarize(
     Avg_CPI = mean(CPI, na.rm = TRUE),
     Avg_Grocery_Price = mean(Average_Price, na.rm = TRUE),
-    Avg_Wage = mean(Wage, na.rm = TRUE)
-  ) %>%
+    Avg_Wage = mean(Wage, na.rm = TRUE)) %>%
   mutate(
     `% Change in CPI` = (Avg_CPI / lag(Avg_CPI) - 1) * 100,
     `% Change in Grocery Prices` = (Avg_Grocery_Price / lag(Avg_Grocery_Price) - 1) * 100,
-    `% Change in Wages` = (Avg_Wage / lag(Avg_Wage) - 1) * 100
-  ) %>%
-  filter(!is.na(`% Change in CPI`)) %>%  # Remove the first year (no % change)
+    `% Change in Wages` = (Avg_Wage / lag(Avg_Wage) - 1) * 100) %>%
+  filter(!is.na(`% Change in CPI`)) %>%  
   select(
     Year, 
     `% Change in CPI`, 
     `% Change in Grocery Prices`, 
-    `% Change in Wages`
-  ) %>%
+    `% Change in Wages`) %>%
   mutate(
     across(
       starts_with("% Change"), 
-      ~ sprintf("%.1f%%", .)  # Format as percentages
-    )
-  )
+      ~ sprintf("%.1f%%", .)))
 
-# Create the table
 knitr::kable(
   percentage_changes,
-  col.names = c("Year", "% Change in CPI", "% Change in Grocery Prices", "% Change in Wages")
-)
+  col.names = c("Year", "% Change in CPI", "% Change in Grocery Prices", "% Change in Wages"))
 
 ```
 
@@ -282,7 +297,7 @@ Each coefficient $\beta_i$ is assigned a Normal prior $\mathcal{N}(0, 2.5)$ to r
 Each predictor captures an aspect of the Affordability Index:
 
 - **Consumer Price Index (CPI)**: Captures inflation and changes in general cost of goods and services, and the primary determinant of grocery prices, and evidently, the Affordability Index. As CPI increases, affordability is expected to decline. 
-- **Average Price**: Represent average monthly price of the defined basket in @datasec. Measures the cost of groceries comparatively. 
+- **Average Price**: Represent average monthly price of the defined basket in @sec-data. Measures the cost of groceries comparatively. 
 - **Time**: Represented as a cumulative numeric variable corresponding to the number of days since the start of the dataset. Captures temporal change and long term shifts. 
 
  The decision to exclude Wage as a predictor stems from the construction of the Affordability Index, which is already defined as the ratio of Wage to Average Price. Including Wage would introduce redundancy and lead to multicollinearity, and produce almost exact estimates.  
@@ -309,7 +324,7 @@ elasticity_model <-
 #| message: false
 #| warning: false
 #| label: tbl-summary
-#| tbl-cap: "Summary statistics of model"
+#| tbl-cap: "Summary statistics of linear model"
 
 modelsummary(list(
     "Elasticity Model" = elasticity_model),
@@ -329,7 +344,7 @@ modelsummary(list(
 #| message: false
 #| warning: false
 #| label: fig-modelsss
-#| fig-cap: "Affordability, CPI, and Average Price by Year"
+#| fig-cap: "Model Visualization of Affordability, CPI, and Average Price from 2017 to 2023"
 #| fig-cap-location: top
 
 model_data <- model_data %>% filter(Time >0)
@@ -360,12 +375,19 @@ ggplot(model_data, aes(x = Percent_CPI, y = Percent_Average_Price, color = exp(F
     values = c(16, 6, 18, 1, 17, 10, 15)) +
   scale_color_viridis_c() +
   labs(
-    title = "Affordability, CPI, and Average Price by Year",
-    x = "CPI (% Change from 2017)",
-    y = "Grocery Price (% Change from 2017)",
-    color = "Affordability Index") +
+    x = "CPI (%)",
+    y = "Grocery Price (%)",
+    color = "Affordability Index",
+    shape = "Year") +
   theme_minimal() + 
-theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(0.1, "lines"))
 
 
 
@@ -393,7 +415,6 @@ The intercept coefficients of the model shows that general inflation (CPI) has a
 #| warning: false
 #| label: tbl-logsummary
 
-# Calculate yearly averages and include Percent_CPI, Percent_Average_Price, and Percent_Wage
 yearly_summary <- model_data %>%
   group_by(Year) %>%
   summarize(
@@ -418,12 +439,12 @@ knitr::kable(
   yearly_summary,
   col.names = c(
     "Year",
-    "Avg CPI",
-    "Avg Grocery Price",
+    "Avg. CPI",
+    "Avg. Grocery Price",
     "Affordability Index (%)",
-    "Percent CPI (%)",
-    "Percent Grocery Price (%)",
-    "Percent Wage (%)"),
+    "CPI (%)",
+    "Grocery Price (%)",
+    "Wage (%)"),
   caption = "Yearly Averages, Affordability Index, and Percentage Changes with Wage",
   digits = 2)
 
@@ -447,14 +468,12 @@ The faster rise in grocery prices compared to CPI reveals that grocery-specific 
 #| message: false
 #| warning: false
 #| label: fig-analysis
-#| fig-cap: "Yap"
+#| fig-cap: "Grocery Inflation vs Wage Growth"
 
-# Calculate Wage-Price Gap and Add Affordability Index
 yearly_summary <- yearly_summary %>%
   mutate(
     Wage_Price_Gap = Percent_Wage - Percent_Average_Price)
 
-# Plot Updated Metrics
 ggplot(yearly_summary, aes(x = Year)) +
   geom_line(aes(y = Percent_Average_Price, color = "Grocery Inflation"), size = 0.5) +
   geom_line(aes(y = Percent_Wage, color = "Wage Growth"), size = 0.5) +
@@ -462,24 +481,27 @@ ggplot(yearly_summary, aes(x = Year)) +
   geom_line(aes(y = Affordability_Index, color = "Affordability Index"), size = 0.5, linetype = "dotdash") +
   scale_y_continuous(
     name = "Percentage Change (%)",
-    sec.axis = sec_axis(~ ., name = "Affordability Index")
-  ) +
+    sec.axis = sec_axis(~ ., name = "Affordability Index")) +
   labs(
-    title = "Grocery Inflation vs Wage Growth",
     x = "Year",
-    y = "Change (%)"
-  ) +
+    y = "Change (%)") +
   scale_color_manual(
     name = "Metrics",
     values = c(
       "Grocery Inflation" = "orange2",
       "Wage Growth" = "cadetblue2",
       "Wage-Price Gap" = "forestgreen",
-      "Affordability Index" = "magenta4"
-    )
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+      "Affordability Index" = "magenta4")) +
+    theme_minimal() +
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(0.1, "lines"))
+  
 
 ```
 
@@ -561,10 +583,19 @@ ggplot() +
               alpha = 0.15) +
   labs(
     y = "Affordability Index",
-    x = "Date") +
+    x = "Date",
+    fill= " ",
+    color = "Values") +
   scale_color_manual(values = c("Observed" = "blue", "Predicted" = "red")) +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+   axis.title.x = element_text(size = 11, face = "bold", family = "serif", margin = margin(t = 10, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(size = 11, face = "bold", family = "serif"),
+    axis.text.x = element_text(size = 8, family = "serif"),
+    axis.text.y = element_text(size = 8, family = "serif"),
+    legend.title = element_text(size = 11, family = "serif"),
+    legend.text = element_text(size = 8, family = "serif"),
+    legend.box.spacing = unit(0.1, "lines"))
 
 ```
 
@@ -602,7 +633,7 @@ This section will be explaining the data cleaning process documented in `/script
 I used a 3 different datasets, split between 5 files. `old_inflation_data` and `inflation_data` are from the same source, but `old_inflation_data` contains years 2000 to 2023. The same was done for `old_wage_data`. This decision was done to make a broader analysis over many years easier, since data for `grocery_data` is only available from 2017 and on- variables `avg_wage_data` and `inflation_data` only contain data from 2017 and on as well.
 Similar cleaning processes were used for each variable. The data is loaded in and the first couple of rows are skipped since they contains subheadings?.  One of the rows is kept for the column names using `colnames`, which then are renamed. `gsub` is used to rename the column names to remove spaces and characters that would conflict with the code. mutate was used to extract year and month columns for `grocery_data` and `inflation_data`,and `old_inflation_data`, since these variables are recorded monthly. `left_join` Is used to merge `inflation_data` to `grocery_data` by variables `year` and `month`.
 
-`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and ‘old_inflation_wage_data’, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data`.
+`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and `old_inflation_wage_data`, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data`.
 
 Wages used are averages of all industries, of part-time and full-time employees, for people 15 and older. 
 
