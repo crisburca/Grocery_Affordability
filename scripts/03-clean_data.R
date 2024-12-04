@@ -1,16 +1,20 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 6 April 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
-# License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Purpose: Download and save data
+# Author: Cristina Burca
+# Date: 02 December 2024
+# Contact: cristina.burca@mail.utoronto.ca
+# Pre-requisites: 02-download_data.R
 
 #### Workspace setup ####
 library(tidyverse)
 library(janitor)
+#library(arrow)
 
+grocery_data <- read.csv("./data/01-raw_data/grocery_prices.csv", skip = 7, header = TRUE)
+inflation_data <- read.csv("./data/01-raw_data/cpi_inflation.csv",  skip = 7, header = TRUE)
+avg_wage_data <- read.csv("./data/01-raw_data/wages_Year.csv", skip= 16, header = FALSE)
+old_wage_data <- read.csv("./data/01-raw_data/old_wages_Year.csv", skip= 16, header = FALSE)
+old_inflation_data <- read.csv("./data/01-raw_data/old_cpi_inflation.csv", skip= 7, header = TRUE)
 
 #### Clean data ####
 
@@ -23,6 +27,7 @@ grocery_data <- head(grocery_data, -17)
 
 grocery_data <- grocery_data %>%
   clean_names()
+
 
 # Remove unnecessary rows and format inflation data
 colnames(inflation_data) <- inflation_data[1, ] 
@@ -105,6 +110,40 @@ grocery_data <- grocery_data %>%
   mutate(Date = as.Date(paste(Year, Month, "01", sep = "-")))
 
 
+library(dplyr)
+
+grocery_data <- grocery_data %>%
+  mutate(
+    Date = as.Date(Date, format = "%Y-%m-%d"),
+    # Ensure all selected columns are numeric
+    Average_Price = rowSums(
+      select(., 
+             ground_beef_per_kilogram_4, chicken_breasts_per_kilogram_4,
+             butter_454_grams_4, milk_1_litre_4, yogurt_500_grams_5,
+             block_cheese_500_grams_5, eggs_1_dozen_4, apples_per_kilogram_4,
+             oranges_per_kilogram_4, bananas_per_kilogram_4, potatoes_4_54_kilograms_4,
+             tomatoes_per_kilogram_4, carrots_1_36_kilograms_5, onions_per_kilogram_4,
+             celery_unit_4, romaine_lettuce_unit_4, peppers_per_kilogram_4,
+             frozen_mixed_vegetables_750_grams_5, frozen_pizza_390_grams_5,
+             white_bread_675_grams_5, dry_or_fresh_pasta_500_grams_5,
+             white_rice_2_kilograms_5, orange_juice_2_litres_5,
+             roasted_or_ground_coffee_340_grams_5, olive_oil_1_litre_5,
+             toothpaste_100_millilitres_5, laundry_detergent_4_43_litres_5
+      ) %>% 
+        mutate(across(everything(), as.numeric)),  # Ensure all columns are numeric
+      na.rm = TRUE
+    )
+  )
+
+
+grocery_data <- grocery_data %>%
+  mutate(
+    Time = as.numeric(Date - min(Date)),
+    Affordability = Wage/Average_Price,
+    CPI = as.numeric(CPI),
+    Wage = as.numeric(Wage))
+
+
 # Merging inflation and wage in separate variable
 inflation_wage_data <- inflation_data %>%
   mutate(Wage = case_when(
@@ -170,4 +209,4 @@ write_csv(avg_wage_data, "./data/02-analysis_data/avg_wage_data.csv")
 write_csv(inflation_wage_data, "./data/02-analysis_data/inflation_wage_data.csv")
 write_csv(old_inflation_wage_data, "./data/02-analysis_data/old_inflation_wage_data.csv")
 
-arrow::write_parquet(preddata, "./data/02-analysis_data/cleaned.parquet")
+#arrow::write_parquet(preddata, "./data/02-analysis_data/cleaned.parquet")

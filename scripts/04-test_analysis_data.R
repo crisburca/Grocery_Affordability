@@ -11,6 +11,13 @@ library(tidyverse)
 library(testthat)
 
 
+#### Load Data ####
+grocery_data <- read_csv("./data/02-analysis_data/grocery_data.csv")
+inflation_data <- read_csv("./data/02-analysis_data/inflation_data.csv")
+inflation_wage_data <- read_csv("./data/02-analysis_data/inflation_wage_data.csv")
+old_inflation_wage_data <- read_csv("./data/02-analysis_data/old_inflation_wage_data.csv")
+avg_wage_data <- read_csv("./data/02-analysis_data/avg_wage_data.csv")
+
 #### Test data ####
 
 ## Test that `Year` and `Month` have correct number of columns
@@ -52,7 +59,6 @@ test_that("no missing values in dataset", {
 test_that("no missing values in dataset", {
   expect_true(all(!is.na(inflation_data)))
 })
-
 
 ## Test Date format
 test_that("The column is a Date in Y-M-D format", {
