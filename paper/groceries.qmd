@@ -39,7 +39,7 @@ old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage
 
 Inflation in Canada has increased significantly across all sectors, raising concerns about affordability for households. Among these, the rapid rise in grocery prices has emerged as a critical issue. Since May 2020, grocery prices have increased by 22.5% and continue to climb each month, straining the budgets of Canadians and creating widespread economic anxiety (@CTVNews). In this context, the intersection of rising inflation, stagnant wage growth, and sector-specific price surges has made essential groceries increasingly unattainable for many households. This paper explores the relationship between grocery prices, general inflation (CPI), and wages in Canada from 2017 to 2023. Through the development of an Affordability Index, we assess whether wage growth has kept pace with rising grocery prices, and we predict the future affordability of groceries under current economic trends.
 
-Using historical data, this paper analyzez trends in general inflation (CPI) and sector-specific grocery inflation, alongside average wage growth, to evaluate their combined effect on affordability. The Affordability Index, calculated as the ratio of average wages to grocery prices, is used to track affordability trends over time and forecast future affordability challenges. This analysis sheds light on whether wage growth has been sufficient to counteract inflation and maintain stable grocery affordability for Canadians.
+Using historical data, this paper analyze trends in general inflation (CPI) and sector-specific grocery inflation, alongside average wage growth, to evaluate their combined effect on affordability. The Affordability Index, calculated as the ratio of average wages to grocery prices, is used to track affordability trends over time and forecast future affordability challenges. This analysis sheds light on whether wage growth has been sufficient to counteract inflation and maintain stable grocery affordability for Canadians.
 
 The primary aim of this paper is to predict the affordability of groceries in the coming years based on historical trends in grocery prices, inflation, and wages. Specifically, we seek to determine whether steady increases in inflation and wages will be sufficient to sustain grocery affordability for the average Canadian household. The analysis assumes linear growth patterns in wages and inflation, while acknowledging the unpredictability of economic disruptions.
 
@@ -53,10 +53,9 @@ The remainder of this paper is structured as follows. @sec-data provides an over
 # Data Overiview {#sec-data}
 
 ## Citations
-The datasets used in this analysis are retrieved from @statcan. The main dataset is acquired from @grocery, containing grocery prices of set units for each month of the year. This dataset is recorded beginning January 2017, and thus analysis with this data set will only be from 2017. The second dataset from @cpi contains monthly records of Consumer Price Index (CPI), all-items excluding the effect of indirect taxes. CPI is used as an indicator of change for consumer prices, or in other words, rate of inflation. It is measuring the prices, and thus price difference, of a set number of common groceries and household goods at a set quantity(unit) representing the average Canadian household. The third dataset contains records of yearly wages of Canada from @wages.
-The three datasets were merged together for analysis. 
+The datasets used in this analysis are retrieved from @statcan. The main dataset is acquired from @grocery, containing grocery prices of set units for each month of the year. The second dataset from @cpi contains monthly records of Consumer Price Index (CPI), all-items excluding the effect of indirect taxes. CPI is used as an indicator of change for consumer prices, or in other words, rate of inflation. It is measuring the prices, and thus price difference, of a set number of common groceries and household goods at a set quantity(unit) representing the average Canadian household. The third dataset contains records of yearly wages of Canada from @wages.
 
-This paper was complied using the prgramming language R (@citeR). Data was complied, cleaned, and vizualised using packages Tidyverse (@tidy), Patchwork (@patchwork), janitor (@janitor) and Knitr (@knitr). Models were ran and summarized using rstanarm (@rstanarm) and modelsummary (@modelsummary). 
+This paper was complied using the programming language R (@citeR). Data was complied, cleaned, and vizualised using packages Tidyverse (@tidy), Patchwork (@patchwork), janitor (@janitor) and Knitr (@knitr). Models were ran and summarized using rstanarm (@rstanarm) and modelsummary (@modelsummary). 
 
 ## Variables
 The important variables that are focused on throughout this paper:
@@ -68,12 +67,9 @@ The important variables that are focused on throughout this paper:
 - `Average_price`: calculates the average price based off selected items that make up a Canadians' "essential grocery basket".
 - `Affordability` : A variable created as an Affordability Index, calculated by Average price divided by Wage. 
 
- The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher vales of the index indicate better affordability, while lower values suggest affordability struggles.
- 
- Items included in Average_Price include...
- The total average is a very rough estimate of popular items purchased by Canadians. The average is not particularly inportant, but the impact and correlation between the two variables is. 
- 
-More about data cleaning in the appendix section appendix @sec-cleaning. 
+ The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher values of the index indicate better affordability, while lower values suggest affordability struggles.
+
+A more detailed explanation about data cleaning and the variables created in @sec-cleaning. 
 
 ## Data Analysis
 
@@ -167,7 +163,7 @@ ggplot(grocery_data, aes(x = Date)) +
 
 
 
-@fig-affordind traks changes in the grocery Affordability Index over between 2017 to 2023. The Affordability Index has shown a gradual decline (~4.6% decrease), reflecting rising grocery prices that are not fully offset by wage growth. Temporary improvements in affordability during 2019 and 2021 correspond to slower grocery price growth. This number brings concern about the affordability of groceries in Canada, in addition to other inflating expenses, such as rent and utilities. 
+@fig-affordind tracks changes in the grocery Affordability Index over between 2017 to 2023. The Affordability Index has shown a gradual decline (~4.6% decrease), reflecting rising grocery prices that are not fully offset by wage growth. Temporary improvements in affordability during 2019 and 2021 correspond to slower grocery price growth. This number brings concern about the affordability of groceries in Canada, in addition to other inflating expenses, such as rent and utilities. 
 
 ```{r, fig.width= 6, fig.height= 3}
 #| echo: false
@@ -237,7 +233,7 @@ knitr::kable(
 
 ```
 
-## Methedology and Measurement
+## Methodology and Measurement
 This study relies on data collected from three primary sources—CPI data, grocery price data, and wage data—each with distinct methodologies and inherent limitations. While the full details of the sampling and data collection processes are provided in @sec-method, the following key points summarize the methodology relevant to this study.
 
 Grocery price and CPI:
@@ -246,11 +242,11 @@ The Consumer Price Index (CPI) is a broad indicator of inflation that tracks pri
 
 Wage data:
 
-Wage data was obtained from Statistics Canada’s Labour Force Survey (LFS), a monthly survey covering approximately 100,000 individuals across Canada (@wage). Data is collected through interviews and electronic surveys, with one household member often acting as a proxy for others. Weighting techniques correct for non-responses and ensure the final estimates align with census projections for key demographic and regional groups. Imputation methods address missing or inconsistent responses. 
+Wage data was obtained from Statistics Canada’s Labour Force Survey (LFS), a monthly survey covering approximately 100,000 individuals across Canada (@wages). Data is collected through interviews and electronic surveys, with one household member often acting as a proxy for others. Weighting techniques correct for non-responses and ensure the final estimates align with census projections for key demographic and regional groups. Imputation methods address missing or inconsistent responses. 
 
 ## Outcome Variables
 The Affordability Index serves as the outcome variable in the proceeding linear model. This index measures the ease with which households can afford a set of essential grocery list described. It is defined as:
-$$\mbox{Affordability Index}\frac{\mbox{Wage}}{\mbox{Average Price}},$$
+$$\mbox{Affordability Index}=\frac{\mbox{Wage}}{\mbox{Average Price}},$$
 providing a direct measure of purchasing power for groceries, capturing how well wages can offset grocery price inflation. Higher values of the index indicate better affordability (wages adequately covering grocery prices), while lower values signal affordability challenges.
 
 ## Predictor Variables
@@ -266,7 +262,7 @@ These predictors were selected to assess whether wage growth has kept pace with 
 
 The motivation of the linear model employed is to evaluate the relationship between grocery affordability and its predictors-- CPI, Time and Average Price--, to quantify the elasticity of affordability with respect to these predictors. Elasticity reflects the proportional change in affordability in affordability for a 1% change in a given predictor, providing a practical interpretation of how affordability responds to economic changes. 
 
- A linear model was chosen for its simplicity and straightforward interpretability of the relationships between variables. Specficially, a log-log linear regression model is chosen as the relationship between affordability and the predictors is expected to be approximately linear in logarithmic terms. The log transformation ensures linearity in log space, stabilize variance, and reduce the impact of outliers. Moreover, elasticity coefficients derived from log-log models simplify the assessment of proportional changes in affordability relative to changes in predictors.
+A linear model was chosen for its simplicity and straightforward interpretability of the relationships between variables. Specficially, a log-log linear regression model is chosen as the relationship between affordability and the predictors is expected to be approximately linear in logarithmic terms. The log transformation ensures linearity in log space, stabilizes variance, and reduces the impact of outliers. Moreover, elasticity coefficients derived from log-log models simplify the assessment of proportional changes in affordability relative to changes in predictors.
 
 ## Model Setup 
 
@@ -332,18 +328,21 @@ modelsummary(list(
     gof_omit = "(AIC|BIC|Log.Lik|R2 Adj.|Num.Obs.|R2|RMSE)")
 
 ```
-@tbl-summary summarizes the coefficients of the model.
+The model some contrasting relationships between the Affordability Index and its predictors. Firstly, the intercept coefficients of the elasticity model in @tbl-summary are interpreted as:
+
+- **The intercept (-0.284)** represents the expected log(Affordability) when all predictors are zero, serving as the baseline for the model.
+- **log(CPI) coefficient (0.397)**: The positive coefficient states that a 1% increase in CPI is associated with a 0.397% increase in the Affordability Index, holding other predictors constant. While this may seem counter-intuitive —given that inflation typically reduces affordability— it likely reflects a correlation between CPI and wage growth.
+- **log(Average_Price) coefficient (-0.685)**: The negative coefficient states that a 1% increase in Average Price is associated with a 0.685% decrease in Affordability, holding other predictors constant. This aligns with expectations, as higher grocery prices directly reduce purchasing power.
+- **log(Time) coefficient (0.024)**: The positive coefficient states that a 1% increase in time is associated with a 0.024% increase in the Affordability Index, holding other predictors constant. While small, this positive trends suggests gradual, incremental improvements in affordability over the study period.
 
 
-@tbl-logsummary provides a summary of yearly averages and log-transformed values for key variables, offering an intuitive connection between the regression model and the observed data. These values will be interpreted further in the discussion section:
-
-
+@fig-models visualizes the relationship between grocery prices (as a percentage change), CPI (as a percentage change), and the Affordability Index across different years.
 
 ```{r, fig.width= 6.5, fig.height=4}
 #| echo: false
 #| message: false
 #| warning: false
-#| label: fig-modelsss
+#| label: fig-models
 #| fig-cap: "Model Visualization of Affordability, CPI, and Average Price from 2017 to 2023"
 #| fig-cap-location: top
 
@@ -400,13 +399,6 @@ ggplot(model_data, aes(x = Percent_CPI, y = Percent_Average_Price, color = exp(F
 
 Inflation is often a reliable indicator of affordability for goods, including groceries. However, because inflation reflects changes in the prices of a wide variety of goods and services, it does not directly isolate grocery-specfic affordability. By examining the predicted Affordability Index from the linear model, this study assesses whether wage growth has kept pace with rising grocery prices through elastic relationships with CPI, average price, and time.
 
-The model some contrasting relationships between the Affordability Index and its predictors. Firstly, the intercept values of the elasticity model in @tbl-summary are intereprted as:
-
-- **The intercept (-0.284)** represents the expected log(Affordability) when all predictors are zero, serving as the baseline for the model.
-- **log(CPI) coefficient (0.397)**: The positive coefficient states that a 1% increase in CPI is associated with a 0.397% increase in the Affordability Index, holding other predictors constant. While this may seem counter-intuitive —given that inflation typically reduces affordability— it likely reflects a correlation between CPI and wage growth.
-- **log(Average_Price) coefficient (-0.685)**: The negative coefficient states that a 1% increase in Average Price is associated with a 0.685% decrease in Affordability, holding other predictors constant. This aligns with expectations, as higher grocery prices directly reduce purchasing power.
-- **log(Time) coefficient (0.024)**: The positive coefficient states that a 1% increase in time is associated with a 0.024% increase in the Affordability Index, holding other predictors constant. While small, this positive trends suggests gradual, incremental improvements in affordability over the study period.
-
 The intercept coefficients of the model shows that general inflation (CPI) has a positive, although seemingly contradictory, relationship with grocery affordability, while grocery-specific inflation strongly reduces affordability. Over time, affordability shows a slight but insufficient improvement, highlighting that rising grocery prices are the primary driver of declining affordability.
 
 ```{r}
@@ -450,16 +442,17 @@ knitr::kable(
 
 ```
 
-Considering CPI and Grocery Prices in @tbl-logsummary, it is apparent that these averages are rising. However, their increase is disproportionate. Between 2017 to 2023, CPI increase by ~20% (from 129.96 to 155.72), while groceries rose by ~32% (from \$123.40 to \$162.42). The faster rise in grocery prices indicates that grocery-specific inflation is growing faster than general inflation trends of Canada. Even if wages or broader economic adjustments help offset general inflation, they may not adequately address the sharp rise in grocery-specific costs.
+Considering CPI and Grocery Prices in @tbl-logsummary, it is apparent that these averages are rising. However, their increase is disproportionate. Between 2017 to 2023, CPI increase by ~20% (from 129.96 to 155.72), while groceries rose by ~32% (from \$123.40 to \$162.42). This faster rise in grocery prices indicates that grocery-specific inflation outpaces general inflation trends in Canada. Even if wages or broader economic adjustments help offset general inflation, they may not adequately address the sharp rise in grocery-specific costs.
 
-The disproportionate growth is reflected in the Affordability Index, which declined from 0.217 in 2017 to 0.207 in 2023, representing a ~4.6% drop in grocery affordability over the six years. While the model shows small improvements in affordability during certain years (e.g., 2019 and 2021), these appear to be temporary and may align with periods of wage growth or slower grocery price inflation. For instance, during the COVID-19 pandemic, restrictions between 2020-2022 limited the sale of goods and services, temporarily lowering Canada's CPI and stabilizing grocery price growth. However, affordability declined sharply in 2022 and 2023 as grocery prices increased, highlighting that wage growth has not kept up with the rising cost of essential goods.
+The disproportionate growth is reflected in the Affordability Index, which declined from 0.217 in 2017 to 0.207 in 2023, representing a ~4.6% drop in grocery affordability over the six years. While the model show temporary improvements in affordability during certain years (e.g., 2019 and 2021), these appear to be temporary and may align withperiods of slower grocery price inflation or wage growth stabilization. For instance, during the COVID-19 pandemic, restrictions between 2020-2022 limited the sale of goods and services, temporarily lowering Canada's CPI and stabilizing grocery price growth. However, affordability declined sharply in 2022 and 2023 as grocery prices increased, implying that wage growth has not kept pace with the rising cost of essential goods.
 
-The positive correlation between CPI and affordability suggests that wages or economic adjustments have kept pace with general inflation, preventing broader grocery affordability declines. This indicates that broad inflation is not inherently detrimental to grocery affordability when accompanied by proportional increases in income or government support. In contrast, **the strong negative elasticity of Average Price highlights that grocery-specific inflation is the primary driver of affordability challenges**. Even if wages rise to match general inflation, rising grocery prices can counteract that increase.
+The positive correlation between CPI and affordability suggests that wages or economic adjustments may have kept pace with general inflation, partially offsetting its impact on affordability. This indicates that broad inflation is not inherently detrimental to grocery affordability when accompanied by proportional increases in income or government support. In contrast, **the strong negative elasticity of Average Price indicates that grocery-specific inflation is the primary driver of affordability challenges**. Even if wages rise to match general inflation, rising grocery prices can counteract that increase.
 
-The contrasting effects of CPI and Average Price highlight the importance of separating general inflation trends from grocery-specific price trends. The positive correlation between CPI and grocery affordability suggests that wages or other economic compensations may have kept pace with general inflation. This indicates that broad inflation is not inherently detrimental to grocery affordability if accompanied by proportional increases in income or government support. The strong negative impact of grocery prices highlights that grocery-specific inflation is a more significant concern. Even if wages rise to match general inflation, higher grocery prices can still disproportionately reduce affordability.
+In @fig-models, the Affordability Index is color-coded in the graph, showing a gradient from higher affordability (e.g., earlier years like 2017) to lower affordability (e.g., 2023). This visual reinforces the declining trend in affordability over time. The clustering of data points toward higher CPI and grocery price percentages in later years indicates that wages, while increasing, remain insufficient to offset grocery-specific inflation.
 
-The faster rise in grocery prices compared to CPI reveals that grocery-specific inflation is growing too rapidly for wages to keep up. As grocery prices increased by 32%, affordability declined, indicating that rising wages or other economic adjustments have been insufficient to maintain purchasing power for essential goods like groceries. This dynamic poses significant challenges for households and policymakers alike.
+The contrasting effects of CPI and Average Price highlight the importance of separating general inflation trends from grocery-specific price trends.Broad inflation correlates positively with grocery affordability because wages or other economic compensations rise in tandem with CPI. This indicates that broad inflation is not inherently detrimental to grocery affordability if accompanied by proportional increases in income or government support. The strong negative impact of grocery prices highlights that grocery-specific inflation is a more significant concern. Even with wage increases matching general inflation, the rapid rise in grocery prices compromises purchasing power.
 
+The faster rise in grocery prices compared to CPI reveals that grocery-specific inflation is growing too rapidly for wages to keep up. As grocery prices increased by 32%, affordability declined, demonstrating that rising wages and broader economic adjustments have not been sufficient to maintain purchasing power for essential goods like groceries. This trend can pose significant challenges for Canadians. 
 
 
 
@@ -538,7 +531,7 @@ model_data <- model_data %>%
   mutate(Predicted_Affordability = predictions)
 ```
 
-@fig-prediction provides the observed and predicted Affordability Index over time and suggests trends for future affordability under the current conditions. This model is ran using @rstanarm and summarized using @modelsummary. 
+@fig-prediction provides the observed and predicted Affordability Index over time and suggests trends for future affordability under the current conditions. This model is ran using rstanarm (@rstanarm) and summarized using modelsummary (@modelsummary). 
 
 ```{r, fig.width= 7.5, fig.height=3.5}
 #| echo: false
@@ -630,10 +623,13 @@ By addressing these limitations and exploring the proposed next steps, future re
 ## Data Cleaning  {#sec-cleaning}
 This section will be explaining the data cleaning process documented in `/scripts/03-clean_data`. 
 
-I used a 3 different datasets, split between 5 files. `old_inflation_data` and `inflation_data` are from the same source, but `old_inflation_data` contains years 2000 to 2023. The same was done for `old_wage_data`. This decision was done to make a broader analysis over many years easier, since data for `grocery_data` is only available from 2017 and on- variables `avg_wage_data` and `inflation_data` only contain data from 2017 and on as well.
-Similar cleaning processes were used for each variable. The data is loaded in and the first couple of rows are skipped since they contains subheadings?.  One of the rows is kept for the column names using `colnames`, which then are renamed. `gsub` is used to rename the column names to remove spaces and characters that would conflict with the code. mutate was used to extract year and month columns for `grocery_data` and `inflation_data`,and `old_inflation_data`, since these variables are recorded monthly. `left_join` Is used to merge `inflation_data` to `grocery_data` by variables `year` and `month`.
+This analysis integrates three datasets split across five files: old_inflation_data, inflation_data, old_wage_data, avg_wage_data, and grocery_data. The datasets were handled separately to facilitate analysis over varying time spans. Specifically, old_inflation_data and old_wage_data contain data from 2000 to 2023, providing a broader historical context.
 
-`ref_cpi` is created to calculate the percentage change in CPI , `CPI_Percentage`. Then, I took the values of wages for each year and manually added the value for each year in new variables `inflation_wage_data` and `old_inflation_wage_data`, both variables having columns of cpi, wage and date, where wage has the same value throughout the year since the record is yearly. Lastly, csv files are written in the folder `/02-Analysis_data` for variables `grocery_data`, `inflation_data`, `avg_wage_data`, `inflation_wage_data` and `old_inflation_wage_data`.
+The first few rows, containing subheadings, were skipped during data import. One of these rows was retained and converted into column names using colnames. The column names were then cleaned with gsub to remove spaces and special characters that could interfere with the code. For datasets recorded monthly (grocery_data, inflation_data, and old_inflation_data), the mutate function was used to extract year and month variables.
+The datasets were merged using left_join on the common year and month variables. Specifically, inflation_data was joined to grocery_data to align Consumer Price Index (CPI) data with grocery price information. Wages, which are recorded annually, were manually added as a column in the inflation_wage_data and old_inflation_wage_data datasets. These variables include columns for CPI, wages, and dates, with wages remaining constant across months within the same year.
+
+The items included in `Average_Price` represent a broad selection of staple goods and household essentials commonly found in a typical Canadian grocery basket. These products encompass a variety of food groups and household necessities, measured in practical units for price analysis. Proteins are represented by ground beef (per kilogram) and chicken breasts (per kilogram). Dairy products include butter (454 grams), milk (1 litre), yogurt (500 grams), block cheese (500 grams), and eggs (1 dozen). Fruits and vegetables are captured by apples (per kilogram), oranges (per kilogram), bananas (per kilogram), potatoes (4.54 kilograms), tomatoes (per kilogram), carrots (1.36 kilograms), onions (per kilogram), celery (per unit), romaine lettuce (per unit), and peppers (per kilogram). Frozen and processed items include frozen mixed vegetables (750 grams), frozen pizza (390 grams), and pantry staples such as white bread (675 grams), dry or fresh pasta (500 grams), white rice (2 kilograms), and orange juice (2 litres). Additional household essentials include roasted or ground coffee (340 grams), olive oil (1 litre), toothpaste (100 millilitres), and laundry detergent (4.43 litres).
+While not exhaustive, this diverse list provides a representative snapshot of items frequently purchased by Canadian households. The index derived from these prices is unitless, allowing for an objective analysis of grocery affordability trends without undue sensitivity to specific product choices.
 
 Wages used are averages of all industries, of part-time and full-time employees, for people 15 and older. 
 
