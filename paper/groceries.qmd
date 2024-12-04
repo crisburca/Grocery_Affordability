@@ -2,7 +2,7 @@
 title: "Understanding the Decline in Grocery Affordability in Canada"
 subtitle: "How Wage Growth Fails to Keep Up with Grocery-Specific Inflation"
 author: Cristina Burca
-thanks: "Code and data are available at: [Are Groceries Attainable](https://github.com/Mezhi18/US_Election2024.git)."
+thanks: "Code and data are available at: [Grocery Affordability in Canada](https://github.com/crisburca/Grocery_Affordability/tree/main)."
 date: today
 date-format: long
 abstract: "This paper examines the affordability of groceries in Canada from 2017 to 2023, analyzing the relationship between grocery prices, inflation (CPI), and wages through an Affordability Index. We find that grocery prices rose by ~32%, outpacing both inflation (~20%) and wage growth (~22%), resulting in a ~4.6% decline in grocery affordability. While wage growth partially mitigates general inflation, grocery-specific inflation drives a significant decline in affordability, disproportionately affecting households. These findings highlight the growing challenge of maintaining grocery affordability in Canada."
