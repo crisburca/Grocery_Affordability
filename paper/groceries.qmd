@@ -627,12 +627,12 @@ By addressing these limitations and exploring the proposed next steps, future re
 # Appendix {#sec-appendix}
 
 ## Data Cleaning  {#sec-cleaning}
-This section will be explaining the data cleaning process documented in `/scripts/03-clean_data`. 
+This section will explain the data cleaning process documented in `/scripts/03-clean_data`. 
 
-This analysis integrates three datasets split across three files: old_wage_inflation_data, inflation_data, and grocery_data. The datasets were handled separately to facilitate analysis over varying time spans. Specifically, old__wage_data contain data from 2000 to 2023, providing a broader historical context.
+This analysis integrates three datasets split across three files: old_wage_inflation_data, inflation_data, and grocery_data. The datasets were handled separately to facilitate analysis over varying time spans. Specifically, old__wage_data contains data from 2000 to 2023, providing a broader historical context.
 
-The first few rows, containing subheadings, were skipped during data import. One of these rows was retained and converted into column names using colnames. The column names were then cleaned with gsub to remove spaces and special characters that could interfere with the code. For datasets recorded monthly (grocery_data, inflation_data), the mutate function was used to extract year and month variables.
-The datasets were merged using left_join on the common year and month variables. Specifically, inflation_data was joined to grocery_data to align Consumer Price Index (CPI) data with grocery price information. Wages, which are recorded annually, were manually added as a column. These variables include columns for CPI, wages, and dates, with wages remaining constant across months within the same year.
+The first few rows, containing subheadings, were skipped during data import. One of these rows was retained and converted into column names using `colnames`. The column names were then cleaned with `gsub` to remove spaces and special characters that could interfere with the code. For datasets recorded monthly (grocery_data, inflation_data), the mutate function was used to extract year and month variables.
+The datasets were merged using `left_join` on the common year and month variables. Specifically, inflation_data was joined to grocery_data to align Consumer Price Index (CPI) data with grocery price information. Wages, which are recorded annually, were manually added as a column. These variables include columns for CPI, wages, and dates, with wages remaining constant across months within the same year.
 
 The items included in `Average_Price` represent a broad selection of staple goods and household essentials commonly found in a typical Canadian grocery basket. These products encompass a variety of food groups and household necessities, measured in practical units for price analysis. Proteins are represented by ground beef (per kilogram) and chicken breasts (per kilogram). Dairy products include butter (454 grams), milk (1 litre), yogurt (500 grams), block cheese (500 grams), and eggs (1 dozen). Fruits and vegetables are captured by apples (per kilogram), oranges (per kilogram), bananas (per kilogram), potatoes (4.54 kilograms), tomatoes (per kilogram), carrots (1.36 kilograms), onions (per kilogram), celery (per unit), romaine lettuce (per unit), and peppers (per kilogram). Frozen and processed items include frozen mixed vegetables (750 grams), frozen pizza (390 grams), and pantry staples such as white bread (675 grams), dry or fresh pasta (500 grams), white rice (2 kilograms), and orange juice (2 litres). Additional household essentials include roasted or ground coffee (340 grams), olive oil (1 litre), toothpaste (100 millilitres), and laundry detergent (4.43 litres).
 While not exhaustive, this diverse list provides a representative snapshot of items frequently purchased by Canadian households. The index derived from these prices is unitless, allowing for an objective analysis of grocery affordability trends without undue sensitivity to specific product choices.
@@ -640,11 +640,11 @@ While not exhaustive, this diverse list provides a representative snapshot of it
 Wages used are averages of all industries, of part-time and full-time employees, for people 15 and older. 
 
 ## Methodological Exploration of Data Collection {#sec-method}
-The reliability of affordability analysis is determined by the accuracy of the considered variables. This appendix will highlight the importance of how CPI data, grocery data, and wage data was collected and proceed, to ensure the credibility of the data.
+The reliability of affordability analysis is determined by the accuracy of the considered variables. This appendix will highlight the importance of how CPI data, grocery data, and wage data were collected and proceeded, to ensure the credibility of the data.
 
 
 ### Grocery Data Collection And CPI Calculation
-The CPI is an indicator used to measure the rate of inflation. It is calculated by using price data collected for specific goods and services, such us groceries,household goods, gas, utilities, etc., and thus includes the grocery data used in this paper. The CPI has implementations in:
+The CPI is an indicator used to measure the rate of inflation. It is calculated by using price data collected for specific goods and services, such as groceries, household goods, gas, utilities, etc., and thus includes the grocery data used in this paper. The CPI has implementations in:
 
 - contracted payments, used to preserve purchasing power of a value,
 - obtaining constant dollar estimates of variables such as income of expenditure values,
@@ -662,7 +662,7 @@ The general sampling approach for the grocery data involves three main stages to
 - stage 2: Representative outlets (retail stores, small stores, or online retailers) are selected based on largest consumer purchases.
 - stage 3: Small samples of products are chosen from each product class to represent the broader class, based on popularity and research. Products with volatile prices, significant basket weights, and lower cost are prioritized. Each product class is weighed based on its share of total consumer expenditure. 
 
-Price collection is conducted by many methods through retail stores, flyers or online. For some product classes that have national. Provincial pricing, prices may be collected centrally through retailer websites. Units of products are primary as possible, with goods usually measured per unit, per kilogram, or per liter. More detailed explanation of sampling apporach in chapter 5 of (@CPIappen). 
+Price collection is conducted by many methods through retail stores, flyers or online. For some product classes that have national provincial pricing, prices may be collected centrally through retailer websites. Units of products are primary as possible, with goods usually measured per unit, per kilogram, or per liter. A more detailed explanation of the sampling approach in chapter 5 of (@CPIappen). 
 
 #### Calculations of the Consumer Price Index
 After samples are collected, the CPI is calculated through two stages. 
@@ -676,7 +676,7 @@ where:
 - $I^{t-1;t}_{J,a}$ is the weighed Jevons price index for an elementary aggregate $a$ between periods $t-1$ and $t$, 
 - $n$ is the number of product prices $i$ in $a$, and
 - $\left( \frac{p^t_i}{p^{t-1}_i} \right)^{1/n}$ is the price relative for $i$ between periods $t-1$ and $t$. 
-The Jevons formula is the primary method used by Statistics Canada since 1995. It calculates a geometric mean of price relatives, to depend the ratio on previous prices. This formula can be interpreted as an average of price changes, as well as a change in average prices between periods, allowing for easy data analysis.
+The Jevons formula is the primary method used by Statistics Canada since 1995. It calculates a geometric mean of price relatives, to depend on the ratio on previous prices. This formula can be interpreted as an average of price changes, as well as a change in average prices between periods, allowing for easy data analysis.
 
 In the second stage, calculated elementary indices are combined into *aggregate indices* that measure price changes for larger categories. Each aggregate index is assigned a weight that accurately represents consumer expenditure, and then combined into a single CPI value for the entire country. More detail in chapter 6 of (@CPIappen).
 
@@ -685,21 +685,21 @@ Adjustments are made to product prices to compensate for quality change in produ
 - Direct Price Comparison: For where there is no quality difference in old and new products, such as gas or electricity,
 - Overlap Pricing: applied when old and new products are sold concurrently,
 - Mean Imputation: imputes price changes of new products based on average price movements of similar products, 
-- Quantity adjustment: Adjusts for changes in produce quantity, for example package size, assuming the quality of the product remains constant. This common for packaged food items and household items, and impacts most of the grocery data used this paper. 
+- Quantity adjustment: Adjusts for changes in produce quantity, for example package size, assuming the quality of the product remains constant. This is common for packaged food items and household items, and impacts most of the grocery data used this paper. 
 
-Explicit methods directly account for quality differences by comparing old and new products. Hedonic Quality Adjustment is used for products rapidly changing features, such as software, or services like internet and cellular plans. This method replies of regressions models to estimate relationships between price and product characteristics. Regression models are used to predict prices based on features, like CPU and RAM of a laptop, and separate regressions are run for features like download speed and upload speed of internet services. Regression variables are weighed accordingly to their relevance to the product or service. More detail in chapter 7 of (@CPIappen). 
+Explicit methods directly account for quality differences by comparing old and new products. Hedonic Quality Adjustment is used for products' changing features, such as software, or services like internet and cellular plans. This method relies on regressions models to estimate relationships between price and product characteristics. Regression models are used to predict prices based on features, like CPU and RAM of a laptop, and separate regressions are run for features like download speed and upload speed of internet services. Regression variables are weighed according to their relevance to the product or service. More details in chapter 7 of (@CPIappen). 
 
-By implementing these quality adjustments ensure that CPI reflects pure price changes.
+Implementing these quality adjustments ensures that CPI reflects pure price changes.
 
 #### Limitations of Methodolgy and Survey Samples
-The calculation of the CPI is subject to several limitations that an impact the accuracy and representativeness. One limitation is the focus on private households, which many capture the consumption patterns of all Canadians. Combined households are not included in the survey, which can account for and percentage of the overall population of Ontario, and Canada. Different households have varying purchasing behaviors influenced by income, cultural and personal preferences, and household composition, which may not reflect the broader Canadian population. Furthermore, there is significant regional variation in price sampling, and limited coverage of specific products in certain areas. The lack of geographic representation may skew results, especially for locally popular or region-specific goods. 
+The calculation of the CPI is subject to several limitations that impact the accuracy and representativeness. One limitation is the focus on private households, which many capture the consumption patterns of all Canadians. Combined households are not included in the survey, which can account for percentage of the overall population of Ontario, and Canada. Different households have varying purchasing behaviors influenced by income, cultural and personal preferences, and household composition, which may not reflect the broader Canadian population. Furthermore, there is significant regional variation in price sampling, and limited coverage of specific products in certain areas. The lack of geographic representation may skew results, especially for locally popular or region-specific goods. 
 
-Another limitation is the reliance on a "judgmental" selection of products within each category. While this approach prioritizes commonly purchased items, it introduces subjectivity. Although selection is based on market research, it also depends on the expertise of those making the selection. This method may overlook less popular but significant products. Additionally, the handling/ manipulation of sales, promotions, and out-of-stock items presents challenges to accuracy. When items are unavailable or missing price data, estimates of the prices are made based on similar products or locations, or simply substituted. While these methods aim to maintain continuity in the index, it may introduce inaccuracies that do not fully capture the original products price dynamics or consumer preference. 
+Another limitation is the reliance on a "judgmental" selection of products within each category. While this approach prioritizes commonly purchased items, it introduces subjectivity. Although selection is based on market research, it also depends on the expertise of those making the selection. This method may overlook less popular but significant products. Additionally, the handling/ manipulation of sales, promotions, and out-of-stock items presents challenges to accuracy. When items are unavailable or missing price data, estimates of the prices are made based on similar products or locations, or simply substituted. While these methods aim to maintain continuity in the index, they may introduce inaccuracies that do not fully capture the original products price dynamics or consumer preference. 
 
-These limitation highlight trade-offs in CPI calculations, ensuring representativeness while managing constraints in data collection. 
+These limitations highlight trade-offs in CPI calculations, ensuring representativeness while managing constraints in data collection. 
 
 ### Wage Data Collection
-Wage data was obtained from the Labour Force Survey (LFS). the LFS is monthly household survey conducted by Statistics Canada to gather data on the Canadian Labour Market. A survey, in the form of a questionnaire, is completely by eligible individuals in the samples. 
+Wage data was obtained from the Labour Force Survey (LFS). the LFS is a monthly household survey conducted by Statistics Canada to gather data on the Canadian Labour Market. A survey, in the form of a questionnaire, is completed by eligible individuals in the samples. 
 
 #### Sampling Methodology
 The LFS uses a stratified multi-staged probability approach for their samples, dividing each province into large geographic strata. In the first stage, smaller geographic areas, known as clusters, are selected within each stratum. In the second stage, dwellings are chosen from these clusters.
@@ -707,13 +707,13 @@ The LFS uses a stratified multi-staged probability approach for their samples, d
 The LFS utilizes a Rotating Panel Design, where initially selected households participate for six consecutive months in the collection of data, with about one-sixth of the sample replaced each month. The sample covers approximately 68,000 households monthly, collecting data from around 100,000 individuals. This approach balances the need for up-to-date information with the benefits of tracking changes over time.
 
 #### Data Collection
-The target population of the survey include all people aged 15 and older who's main country of residence is Canada, including citizens, non-permanent residents and permanent residents. Excluded from the population are those who live on reserves, full-time members of Armed Forces, and people living in institutions. Surveys are conducted via in-person interviews, telephone interviews, or self-completed electronic questionnaires. The LFS practices proxy reporting, where one individual per household provides the information for the entire household, which accounts for a significant portion of the responses, about 65%.  
+The target population of the survey includes all people aged 15 and older who's main country of residence is Canada, including citizens, non-permanent residents and permanent residents. Excluded from the population are those who live on reserves, full-time members of Armed Forces, and people living in institutions. Surveys are conducted via in-person interviews, telephone interviews, or self-completed electronic questionnaires. The LFS practices proxy reporting, where one individual per household provides the information for the entire household, which accounts for a significant portion of the responses, about 65%.  
 
-The questionnaire is periodically redesigned to reflect the changes in the Canadian Labour Market. These changes are rigorously tested through review committees, focus groups, and pilot tests to ensure reliability. The most recent full questionnaire can be found here [@LFSsurvey], effective since January 1st, 2023.
+The questionnaire is periodically redesigned to reflect changes in the Canadian Labour Market. These changes are rigorously tested through review committees, focus groups, and pilot tests to ensure reliability. The most recent full questionnaire can be found here [@LFSsurvey], effective since January 1st, 2023.
 
 
 #### Error Detection and Imputation
-As a sample survey, the LFS is subject to sampling and non- sampling errors, that can rise from data collection and processing. To mitigate these issues, the LFS has several error detection and imputation strategies to ensure data reliability. Interviewers undergo comprehensive training, through questionnaire testing, and questions are researched to ensure clarity and ambiguity.Additionally, electronic questionnaires are programmed to flag out-of-range or inconsistent responses for immediate human verification. Post-collection, further imputation methods are executed to handle missing or incorrect data. These methods include:
+As a sample survey, the LFS is subject to sampling and non- sampling errors, that can rise from data collection and processing. To mitigate these issues, the LFS has several error detection and imputation strategies to ensure data reliability. Interviewers undergo comprehensive training, through questionnaire testing, and questions are researched to ensure clarity and ambiguity. Additionally, electronic questionnaires are programmed to flag out-of-range or inconsistent responses for immediate human verification. Post-collection, further imputation methods are executed to handle missing or incorrect data. These methods include:
 
 - Deterministic Imputation: Missing/incomplete data is replace with logically consistent values,
 - Carry-Forward Imputation: Data from the previous month is carried over to the current month's missing values, when appropriate, and
@@ -727,9 +727,9 @@ These major weight adjustments improve estimate accuracy by ensuring that survey
 #### Limitations of the LFS
 While the LFS has a comprehensive process for collection information, it has some limitations that should be considered. The LFS does exclude some populations, as described above, which may not fully represent the labour market conditions for these groups. 
 
-Non-response remains a challenge in many surveys, even with attempted follow up efforts. Adjustments are made to account for these reports, but the assumption of similarity of dispositions between households may not hold true for all instances. Proxy reporting can also lead to inaccuracies due to the proxy's incomplete knowledge or misreporting. Furthermore, sampling variability from different samples could produce varied estimates, particular for smaller population groups or regions. While weight adjustments are implemented to attenuate this, the estimates may still be impacted by these fluctuations. 
+Non-response remains a challenge in many surveys, even with attempted follow up efforts. Adjustments are made to account for these reports, but the assumption of similarity of dispositions between households may not hold true for all instances. Proxy reporting can also lead to inaccuracies due to the proxy's incomplete knowledge or misreporting. Furthermore, sampling variability from different samples could produce varied estimates, particularly for smaller population groups or regions. While weight adjustments are implemented to attenuate this, estimates may still be impacted by these fluctuations. 
 
-Despite these limitations, the LFS employes effective methodologies to maintain data quality. For a more detailed explication of the LFS, refer to [@LFSsurvey].
+Despite these limitations, the LFS employs effective methodologies to maintain data quality. For a more detailed explication of the LFS, refer to [@LFSsurvey].
 
 
 ## Linear Model Summary Statistics 
