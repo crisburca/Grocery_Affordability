@@ -30,9 +30,7 @@ library(janitor)
 
 grocery_data <- read.csv("../data/02-analysis_data/grocery_data.csv")
 inflation_data <- read.csv("../data/02-analysis_data/inflation_data.csv")
-avg_wage_data <- read.csv("../data/02-analysis_data/avg_wage_data.csv")
-inflation_wage_data <- read.csv("../data/02-analysis_data/inflation_wage_data.csv")
-old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage_data.csv")
+old_inflation_wage_data <- read.csv("../data/02-analysis_data/old_inflation_wage_data.csv") #yes
 ```
 
 # Introduction
@@ -633,10 +631,10 @@ By addressing these limitations and exploring the proposed next steps, future re
 ## Data Cleaning  {#sec-cleaning}
 This section will be explaining the data cleaning process documented in `/scripts/03-clean_data`. 
 
-This analysis integrates three datasets split across five files: old_inflation_data, inflation_data, old_wage_data, avg_wage_data, and grocery_data. The datasets were handled separately to facilitate analysis over varying time spans. Specifically, old_inflation_data and old_wage_data contain data from 2000 to 2023, providing a broader historical context.
+This analysis integrates three datasets split across three files: old_wage_inflation_data, inflation_data, and grocery_data. The datasets were handled separately to facilitate analysis over varying time spans. Specifically, old__wage_data contain data from 2000 to 2023, providing a broader historical context.
 
-The first few rows, containing subheadings, were skipped during data import. One of these rows was retained and converted into column names using colnames. The column names were then cleaned with gsub to remove spaces and special characters that could interfere with the code. For datasets recorded monthly (grocery_data, inflation_data, and old_inflation_data), the mutate function was used to extract year and month variables.
-The datasets were merged using left_join on the common year and month variables. Specifically, inflation_data was joined to grocery_data to align Consumer Price Index (CPI) data with grocery price information. Wages, which are recorded annually, were manually added as a column in the inflation_wage_data and old_inflation_wage_data datasets. These variables include columns for CPI, wages, and dates, with wages remaining constant across months within the same year.
+The first few rows, containing subheadings, were skipped during data import. One of these rows was retained and converted into column names using colnames. The column names were then cleaned with gsub to remove spaces and special characters that could interfere with the code. For datasets recorded monthly (grocery_data, inflation_data), the mutate function was used to extract year and month variables.
+The datasets were merged using left_join on the common year and month variables. Specifically, inflation_data was joined to grocery_data to align Consumer Price Index (CPI) data with grocery price information. Wages, which are recorded annually, were manually added as a column. These variables include columns for CPI, wages, and dates, with wages remaining constant across months within the same year.
 
 The items included in `Average_Price` represent a broad selection of staple goods and household essentials commonly found in a typical Canadian grocery basket. These products encompass a variety of food groups and household necessities, measured in practical units for price analysis. Proteins are represented by ground beef (per kilogram) and chicken breasts (per kilogram). Dairy products include butter (454 grams), milk (1 litre), yogurt (500 grams), block cheese (500 grams), and eggs (1 dozen). Fruits and vegetables are captured by apples (per kilogram), oranges (per kilogram), bananas (per kilogram), potatoes (4.54 kilograms), tomatoes (per kilogram), carrots (1.36 kilograms), onions (per kilogram), celery (per unit), romaine lettuce (per unit), and peppers (per kilogram). Frozen and processed items include frozen mixed vegetables (750 grams), frozen pizza (390 grams), and pantry staples such as white bread (675 grams), dry or fresh pasta (500 grams), white rice (2 kilograms), and orange juice (2 litres). Additional household essentials include roasted or ground coffee (340 grams), olive oil (1 litre), toothpaste (100 millilitres), and laundry detergent (4.43 litres).
 While not exhaustive, this diverse list provides a representative snapshot of items frequently purchased by Canadian households. The index derived from these prices is unitless, allowing for an objective analysis of grocery affordability trends without undue sensitivity to specific product choices.

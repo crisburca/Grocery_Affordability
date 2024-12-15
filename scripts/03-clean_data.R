@@ -8,7 +8,7 @@
 #### Workspace setup ####
 library(tidyverse)
 library(janitor)
-#library(arrow)
+library(arrow)
 
 grocery_data <- read.csv("./data/01-raw_data/grocery_prices.csv", skip = 7, header = TRUE)
 inflation_data <- read.csv("./data/01-raw_data/cpi_inflation.csv",  skip = 7, header = TRUE)
@@ -205,8 +205,8 @@ old_inflation_wage_data <- old_inflation_wage_data %>%
 #### Save data ####
 write_csv(grocery_data, "./data/02-analysis_data/grocery_data.csv")
 write_csv(inflation_data, "./data/02-analysis_data/inflation_data.csv")
-write_csv(avg_wage_data, "./data/02-analysis_data/avg_wage_data.csv")
-write_csv(inflation_wage_data, "./data/02-analysis_data/inflation_wage_data.csv")
 write_csv(old_inflation_wage_data, "./data/02-analysis_data/old_inflation_wage_data.csv")
 
-#arrow::write_parquet(preddata, "./data/02-analysis_data/cleaned.parquet")
+arrow::write_parquet(grocery_data, "./data/02-analysis_data/parquet/grocery_data.parquet")
+arrow::write_parquet(inflation_data, "./data/02-analysis_data/parquet/inflation_data.parquet")
+arrow::write_parquet(old_inflation_wage_data, "./data/02-analysis_data/parquet/old_inflation_wage_data.parquet")
