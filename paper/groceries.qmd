@@ -1,11 +1,11 @@
 ---
-title: "Understanding the Decline in Grocery Affordability in Canada"
+title: "The Decline in Grocery Affordability in Canada"
 subtitle: "How Wage Growth Fails to Keep Up with Grocery-Specific Inflation"
 author: Cristina Burca
-thanks: "Code and data are available at: [Grocery Affordability in Canada](https://github.com/crisburca/Grocery_Affordability/tree/main)."
+thanks: "Code and data are available at: [Grocery Affordability in Canada](https://github.com/crisburca/Grocery_Affordability)."
 date: today
 date-format: long
-abstract: "This paper examines the affordability of groceries in Canada from 2017 to 2023, analyzing the relationship between grocery prices, inflation (CPI), and wages through an Affordability Index. We find that grocery prices rose by ~32%, outpacing both inflation (~20%) and wage growth (~22%), resulting in a ~4.6% decline in grocery affordability. While wage growth partially mitigates general inflation, grocery-specific inflation drives a significant decline in affordability, disproportionately affecting households. These findings highlight the growing challenge of maintaining grocery affordability in Canada."
+abstract: "From 2017 to 2023, grocery affordability in Canada declined as grocery prices rose by approximately 32%, surpassing general inflation (~20%) and wage growth (~22%). By analyzing an Affordability Index, measuring grocery affordability relative to income, the findings show a ~4.6% decline in grocery affordability over this period. While wage growth partially mitigates the effects of general inflation, grocery-specific inflation is the primary driver of declining affordability, disproportionately affecting Canadian households. These findings interpret the growing challenge of addressing grocery affordability in Canada."
 format:
   pdf:
     bibliography: references.bib
@@ -43,16 +43,16 @@ Using historical data, this paper analyze trends in general inflation (CPI) and 
 
 The primary aim of this paper is to predict the affordability of groceries in the coming years based on historical trends in grocery prices, inflation, and wages. Specifically, we seek to determine whether steady increases in inflation and wages will be sufficient to sustain grocery affordability for the average Canadian household. The analysis assumes linear growth patterns in wages and inflation, while acknowledging the unpredictability of economic disruptions.
 
-The analysis explains that grocery-specific inflation has consistently outpaced both general inflation and wage growth since 2017. While wages have increased steadily, they have not been sufficient to offset the sharp rise in grocery prices, resulting in a gradual decline in grocery affordability. This finding underscores the disproportionate impact of sector-specific inflation on Canadian households. Projections based on current trends suggest that, without significant policy or economic intervention, affordability will continue to decline in the coming years.
+The analysis explains that grocery-specific inflation has consistently outpaced both general inflation and wage growth since 2017. While wages have increased steadily, they have not been sufficient to offset the sharp rise in grocery prices, resulting in a gradual decline in grocery affordability. This finding shows the disproportionate impact of sector-specific inflation on Canadian households. Projections based on current trends suggest that, without intervention or changes in policy, affordability will continue to decline in the coming years.
 
-The affordability of groceries is a critical issue for Canadian households, as it directly impacts food security, quality of life, and financial well-being. Rising grocery prices amidst slow wage growth exacerbate economic inequality and place undue pressure on lower-income households. Understanding the drivers of affordability and projecting future trends provides essential insights for policymakers to design targeted interventions that address inflationary pressures and wage stagnation.
-
+The affordability of groceries is a critical issue for Canadian households, as it directly impacts food security, quality of life, and financial well-being. Rising grocery prices amidst slow wage growth heighten economic inequality and place undue pressure on lower-income households. Understanding the drivers of affordability and projecting future trends provides practical information and actionable estimates to help citizens navigate and address the chalelnges of inflation. 
 
 The remainder of this paper is structured as follows. @sec-data provides an overview of the data sources, variables, and key trends observed in grocery prices, wages, and inflation. Methodology, measurements and outcome/predictor variables are also described and determined. @sec-model introduces the model and its justification. @sec-results presents the model findings, followed by a @sec-discussion that interprets the results, arriving to a conclusion, as well as discusses implications, limitations, and future research directions. Finally, Section @sec-appendix describes the data cleaning process, summary tables and checks for the models, and an in depth discussion of the sampling and data collection process of the datasets used in this paper.
 
 # Data Overiview {#sec-data}
 
 ## Citations
+
 The datasets used in this analysis are retrieved from @statcan. The main dataset is acquired from @grocery, containing grocery prices of set units for each month of the year. The second dataset from @cpi contains monthly records of Consumer Price Index (CPI), all-items excluding the effect of indirect taxes. CPI is used as an indicator of change for consumer prices, or in other words, rate of inflation. It is measuring the prices, and thus price difference, of a set number of common groceries and household goods at a set quantity(unit) representing the average Canadian household. The third dataset contains records of yearly wages of Canada from @wages.
 
 This paper was complied using the programming language R (@citeR). Data was complied, cleaned, and vizualised using packages Tidyverse (@tidy), Patchwork (@patchwork), janitor (@janitor) and Knitr (@knitr). Models were ran and summarized using rstanarm (@rstanarm) and modelsummary (@modelsummary). 
@@ -65,7 +65,7 @@ The important variables that are focused on throughout this paper:
 - `Wage`: Yearly average wage of all employees from all industries. 
 - `CPI_Normalized` and `Wage_Normalized`: calculated columns to measure.
 - `Average_price`: calculates the average price based off selected items that make up a Canadians' "essential grocery basket".
-- `Affordability` : A variable created as an Affordability Index, calculated by Average price divided by Wage. 
+- `Affordability` : A variable created as an Affordability Index, calculated by Average Price divided by Wage. 
 
  The Affordability Index is a measure that reflects the ease in which households or individuals can afford a list of essential goods, relative to income-- in this context we consider average wage. Higher values of the index indicate better affordability, while lower values suggest affordability struggles.
 
@@ -99,6 +99,7 @@ normalized_data <- old_inflation_wage_data %>%
              names_to = "Variable",
               values_to = "Value")
 
+# Plot
 ggplot(normalized_data, aes(x = as.Date(Date))) +
   geom_line(aes(y = Value, color = Variable)) +
   labs( x = "Date",
@@ -134,14 +135,15 @@ ggplot(normalized_data, aes(x = as.Date(Date))) +
 #| fig-cap: "Percentage trends of Grocery Prices and CPI from 2017 to 2023"
 #| fig-cap-location: top
 
-
+# Reformat data
 year_data <- normalized_data %>%
   filter(Year >= 2017)
 
 grocery_data <- grocery_data %>%
   mutate(
     Date = as.Date(Date, format = "%Y-%m-%d"))
-    
+ 
+# Plot   
 ggplot(grocery_data, aes(x = Date)) +
   geom_line(aes(y = Average_Price, color = "Grocery Prices"), size = 0.25) +
   geom_line(aes(y = CPI, color = "CPI"), size = 0.25) +
@@ -173,7 +175,7 @@ ggplot(grocery_data, aes(x = Date)) +
 #| fig-cap: "Affordability Index from 2017 to 2023"
 #| fig-cap-location: top
 
-
+# Plot
 ggplot(grocery_data, aes(x = Date, y = Affordability)) +
   geom_line(color = "hotpink", size = 0.4) +
   labs(y = "Affordability Index", x = "Date") +
@@ -206,6 +208,7 @@ The primary objective of the analysis is to assess the relationship between groc
 #| label: tbl-overview
 #| tbl-cap: "Percent changes in CPI, Grocery Prices, and Wages"
 
+# Create avg. variables
 percentage_changes <- grocery_data %>%
   group_by(Year) %>%
   summarize(
@@ -227,6 +230,7 @@ percentage_changes <- grocery_data %>%
       starts_with("% Change"), 
       ~ sprintf("%.1f%%", .)))
 
+# Table
 knitr::kable(
   percentage_changes,
   col.names = c("Year", "% Change in CPI", "% Change in Grocery Prices", "% Change in Wages"))
@@ -309,6 +313,7 @@ Given these trends, the model is expected to demonstrate a strong negative relat
 #| message: false
 #| warning: false
 
+# LM model
 model_data <- grocery_data
 
 elasticity_model <-
@@ -322,6 +327,7 @@ elasticity_model <-
 #| label: tbl-summary
 #| tbl-cap: "Summary statistics of linear model"
 
+# Model summary table
 modelsummary(list(
     "Elasticity Model" = elasticity_model),
   output = "latex",
@@ -346,35 +352,36 @@ The model some contrasting relationships between the Affordability Index and its
 #| fig-cap: "Model Visualization of Affordability, CPI, and Average Price from 2017 to 2023"
 #| fig-cap-location: top
 
+# Predict variables
 model_data <- model_data %>% filter(Time >0)
 model_data <- model_data %>%
   mutate(
     Fitted_Affordability = predict(elasticity_model))
-# Convert Year to integer
+
+# Convert Year to int
 model_data <- model_data %>% 
   mutate(Year = as.integer(format(as.Date(Date), "%Y")))
 
-# Calculate baseline values for CPI, Price, and Wage for 2017
+# Calculate baseline values
 baseline_cpi <- model_data %>% filter(Year == 2017) %>% summarize(mean(CPI, na.rm = TRUE)) %>% pull()
 baseline_price <- model_data %>% filter(Year == 2017) %>% summarize(mean(Average_Price, na.rm = TRUE)) %>% pull()
 baseline_wage <- model_data %>% filter(Year == 2017) %>% summarize(mean(Wage, na.rm = TRUE)) %>% pull()
 
-# Add Percent_CPI, Percent_Average_Price, and Percent_Wage columns
+# Add columns of variables
 model_data <- model_data %>%
   mutate(
     Percent_CPI = (CPI / baseline_cpi - 1) * 100,
     Percent_Average_Price = (Average_Price / baseline_price - 1) * 100, 
     Percent_Wage = (Wage / baseline_wage - 1) * 100)
 
-
+# Plot
 ggplot(model_data, aes(x = Percent_CPI, y = Percent_Average_Price, color = exp(Fitted_Affordability), shape = factor(Year))) +
   geom_point(size = 3, alpha = 0.7) +
   geom_smooth(method = "lm", aes(group = 1), color = "red", size = 0.7, se = TRUE) +
      scale_shape_manual(
     values = c(16, 6, 18, 1, 17, 10, 15)) +
   scale_color_viridis_c() +
-  labs(
-    x = "CPI (%)",
+  labs(x = "CPI (%)",
     y = "Grocery Price (%)",
     color = "Affordability Index",
     shape = "Year") +
@@ -407,6 +414,7 @@ The intercept coefficients of the model shows that general inflation (CPI) has a
 #| warning: false
 #| label: tbl-logsummary
 
+# Format for table
 yearly_summary <- model_data %>%
   group_by(Year) %>%
   summarize(
@@ -427,6 +435,7 @@ yearly_summary <- model_data %>%
     Percent_Average_Price, 
     Percent_Wage)
 
+# Table
 knitr::kable(
   yearly_summary,
   col.names = c(
@@ -463,10 +472,12 @@ The faster rise in grocery prices compared to CPI reveals that grocery-specific 
 #| label: fig-analysis
 #| fig-cap: "Grocery Inflation vs Wage Growth"
 
+# Create new var
 yearly_summary <- yearly_summary %>%
   mutate(
     Wage_Price_Gap = Percent_Wage - Percent_Average_Price)
 
+# Plot
 ggplot(yearly_summary, aes(x = Year)) +
   geom_line(aes(y = Percent_Average_Price, color = "Grocery Inflation"), size = 0.5) +
   geom_line(aes(y = Percent_Wage, color = "Wage Growth"), size = 0.5) +
@@ -521,6 +532,7 @@ Ultimately, Grocery affordability has declined, as shown by the 4.6% drop in the
 #| message: false
 #| warning: false
 
+# Second model
 bay_model <-
   readRDS(file = here::here("models/bay_model.rds"))
 
@@ -541,32 +553,31 @@ model_data <- model_data %>%
 #| fig-cap: "Predicted Affordability Index to 2028 based on past records"
 #| fig-cap-location: top
 
-# Create future data for predictions
+# Create future data
 future_data <- data.frame(
   Date = seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month"),
   Time = as.numeric(seq(as.Date("2024-01-01"), as.Date("2028-12-31"), by = "month") - min(model_data$Date)),
   CPI = seq(max(model_data$CPI), max(model_data$CPI) + 10, length.out = 60))
 
-# Extrapolate Average_Price (e.g., assuming a linear trend)
-# Use the slope of the historical trend
+# Extrapolate avg. price
 historical_slope <- coef(lm(Average_Price ~ Time, data = model_data))[2]
 future_data$Average_Price <- max(model_data$Average_Price) + 
   historical_slope * (future_data$Time - max(model_data$Time))
 
-# Predict affordability for future data
+# Predict affordability
 future_data$Predicted_Affordability <- predict(bay_model, newdata = future_data)
 
-# Fit Bayesian posterior predictions for the current model data
+# Fit Bayesian pp
 fitted_values <- posterior_predict(bay_model, newdata = model_data)
 
-# Add predicted affordability and confidence intervals to historical data
+# Mutate variables, create CI
 model_data <- model_data %>%
   mutate(
     Predicted_Affordability = apply(fitted_values, 2, mean), 
     CI_Lower = apply(fitted_values, 2, quantile, probs = 0.1), 
     CI_Upper = apply(fitted_values, 2, quantile, probs = 0.9))
 
-# Plot observed and predicted affordability
+# Plot
 ggplot() +
   geom_line(data = model_data, aes(x = Date, y = Affordability, color = "Observed")) +
   geom_line(data = future_data, aes(x = Date, y = Predicted_Affordability, color = "Predicted")) +
@@ -574,8 +585,7 @@ ggplot() +
             size = 0.5, linetype = "dashed") +
   geom_ribbon(data = model_data, aes(x = Date, ymin = CI_Lower, ymax = CI_Upper, fill = "Bayesian CI"), 
               alpha = 0.15) +
-  labs(
-    y = "Affordability Index",
+  labs(y = "Affordability Index",
     x = "Date",
     fill= " ",
     color = "Values") +
@@ -734,8 +744,6 @@ Despite these limitations, the LFS employes effective methodologies to maintain 
 #| warning: false
 
 summary(elasticity_model)
-
-
 ```
 
 ## Postrior Predictive Check 
@@ -745,10 +753,9 @@ summary(elasticity_model)
 #| message: false
 #| warning: false
 
+pp_check(bay_model)
+plot(bay_model, pars = "(Intercept)", prob = 0.95)
 
-pp_check(bay_model) + plot(bay_model, pars = "(Intercept)", prob = 0.95)
-#put side by side
-#in rohan notes
 ```
 
 
